@@ -2,8 +2,9 @@
 Programa hecho en java para cargar laberintos hecho con archivos de texto, modelarlos con un grafo y resolverlos mediante algoritmos de búsqueda y camino más corto con interfaz por consola y un menú interactivo
 ## Descripción del proyecto
 El sistema lee mapas de laberintos en archivos ".txt", validando su estructura, construyendo su representación en forma de grafo con vértices y arcos, y permitiendo ejecutar distintos algoritmos de recorrido o búsqueda desde la entrada hasta la meta. Cada algoritmo reinicia su estado en cada ejecución, registra los vértices visitados en orden de procesamiento sin duplicados, guarda predecesores para construir el camino final, evita poner una longitud 0 cuando no existe solución y se detiene al procesar la meta o agotar los vértices alcanzables.
-## Autores
+## Responsabilidades de los autores
 -Sergio Carrillo Osorio --> Implementación del CaminoMasCorto(Dijkstra), integración del menú y pruebas de recorrido
+
 -Jorge Luis Guarista Tanori --> Implementación de los algoritmos DFS y BFS
 ## Fecha de entrega
 28 de Noviembre de 2026
