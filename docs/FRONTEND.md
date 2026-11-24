@@ -1,83 +1,60 @@
-# Frontend (interfaz gráfica con Swing)
+# Frontend (interfaz gráfica con Swing y temas de consola)
 
-Interfaz gráfica del proyecto de laberintos. Es un extra independiente: **no depende** de las clases
-del resto del repositorio (`Grafo`, `Vertice`, etc.), así que compila y se ejecuta sola.
-
-Por ahora usa `ServicioDemo`, una implementación con datos de demostración (búsquedas propias y
-simplificadas). Sirve únicamente para ver y probar la GUI; se sustituirá por un adaptador real.
+La interfaz gráfica ya está conectada a la base: `MainSwing` crea la ventana con `ServicioBase`, que usa la carga real (`validarYLeerLaberinto`), el `Grafo` real (`DFS()`, `BFS()`, `caminoMasCorto()`) y la misma medición de tiempos que el menú de consola. Por eso los visitados, la longitud y la forma de medir los tiempos coinciden con la consola.
 
 Requiere JDK 17 o superior, sin librerías externas.
 
 ## Estructura
 
-```
-Frontend/src/frontend/
-  modelo/   tipos simples y la interfaz que usa la GUI
-    Celda, DatosLaberinto, ResultadoVista, ErrorCargaException
-    ServicioLaberinto   (interfaz: único contacto entre GUI y lógica)
-    ServicioDemo        (SOLO demostración)
-  gui/      Swing: MainSwing, VentanaLaberinto, PanelLaberinto y auxiliares
+```text
+src/frontend/
+  modelo/    Celda, DatosLaberinto, ResultadoVista, ErrorCargaException
+             ServicioLaberinto   interfaz: único contacto entre la GUI y la lógica
+             ServicioBase        implementación con la base real
+  consola/   TemaConsola, RenderConsola, SalidaConsola, PruebaTema
+  gui/       MainSwing, VentanaLaberinto, PanelLaberinto y auxiliares
 ```
 
-La GUI solo conoce `ServicioLaberinto`.
+La GUI solo conoce `ServicioLaberinto`; nunca usa directamente las clases de la base.
 
 ## Compilar y ejecutar
 
-Desde la raíz del repositorio (así encuentra la carpeta `MapaLaberintos`):
+Desde la raíz del repositorio (así encuentra `MapaLaberintos`), compilando en una carpeta temporal:
 
-```
-javac -encoding UTF-8 -d out Frontend\src\frontend\modelo\*.java Frontend\src\frontend\gui\*.java
-java -cp out frontend.gui.MainSwing
+```powershell
+$out = "$env:TEMP\laberinto"
+javac -encoding UTF-8 -d $out (Get-ChildItem -Recurse src -Filter *.java).FullName
+java -cp $out frontend.gui.MainSwing
 ```
 
-Conviene compilar en una carpeta temporal (por ejemplo `-d %TEMP%\lab_out` y luego
-`java -cp %TEMP%\lab_out frontend.gui.MainSwing`) para no dejar archivos `.class` en el repo.
+```bash
+javac -encoding UTF-8 -d /tmp/laberinto $(find src -name '*.java')
+java -cp /tmp/laberinto frontend.gui.MainSwing
+```
+
+## ServicioBase
+
+| Método | Comportamiento |
+| --- | --- |
+| `cargar(Path)` | Valida y lee el mapa con la base y construye el grafo. Si falla, lanza `ErrorCargaException` con el motivo de `LaberintoInvalidoException` y conserva el laberinto anterior. |
+| `resolverDFS()`, `resolverBFS()`, `resolverDijkstra()` | Ejecutan el algoritmo con la enumeración `Algoritmo` del menú (mide con `System.nanoTime()` solo la llamada al algoritmo), convierten los vértices a `Celda(fila, columna)` con `Despliegue.resultadoVista` y guardan el resultado; si ya existe para el laberinto actual, devuelven el guardado. Sin laberinto cargado lanzan `IllegalStateException`. |
+| `reiniciarResultados()` | Limpia los resultados guardados. |
+| `carpetaEjemplos()`, `listarEjemplos()`, `listarEjemplosInvalidos()` | Devuelven `MapaLaberintos` y sus `.txt` (y los de `invalidos/`) en orden natural, con el mismo comparador que el menú. |
+
+Los métodos con estado son `synchronized`, porque la GUI los llama desde `SwingWorker`.
 
 ## Carpeta de ejemplos
 
-La lista lateral busca, relativas al directorio de ejecución, las carpetas `ejemplos` y luego
-`MapaLaberintos` (constante `ServicioDemo.CARPETAS_EJEMPLOS`). Si existe una subcarpeta `invalidos/`,
-aparece como sección colapsada "Ejemplos inválidos".
-
-## Formato del mapa
-
-Cada carácter del archivo es una celda. `+`, `-` y `|` son paredes. El espacio y `#` son transitables.
-La carga del menú requiere una marca `E` y una marca `S` para indicar la entrada y la salida, o
-exactamente dos posiciones transitables en el borde si no hay marcas. La longitud del camino se
-cuenta en movimientos entre celdas del mapa.
-
-## Cómo conectar con la base real
-
-Crear un adaptador (por ejemplo `frontend.modelo.ServicioBase`) que implemente `ServicioLaberinto`
-y cambiar una línea en `MainSwing`: `new VentanaLaberinto(new ServicioBase())`.
-
-Métodos a implementar:
-
-| Método | Qué debe hacer el adaptador |
-|---|---|
-| `cargar(Path)` | Llamar al cargador de la base, convertir el resultado a `DatosLaberinto` (mapa de caracteres, entrada, salida) y lanzar `ErrorCargaException` con un mensaje legible si falla. Si falla debe conservar el laberinto anterior. |
-| `resolverDFS()` / `resolverBFS()` / `resolverDijkstra()` | Ejecutar el algoritmo sobre el laberinto cargado y devolver un `ResultadoVista`: `visitados` en orden de procesamiento, `camino` de entrada a salida (vacío si no hay), `encontrado` y `tiempoNanos`. Convertir cada vértice a `Celda(fila, columna)` de la matriz de caracteres. Se llaman en un hilo de fondo (`SwingWorker`). |
-| `reiniciarResultados()` | Limpiar cualquier estado guardado de ejecuciones anteriores. |
-| `carpetaEjemplos()`, `listarEjemplos()`, `listarEjemplosInvalidos()` | Devolver la carpeta y los `.txt` en orden natural; se puede reutilizar la lógica de `ServicioDemo`. |
-
-Notas para el adaptador:
-
-- Las coordenadas deben ser las de la matriz de caracteres que se dibuja. Si la base trabaja con
-  vértices lógicos (una celda cada dos caracteres), hay que convertirlos, y los pasos intermedios
-  del camino también son celdas del mapa.
-- La GUI no inventa movimientos entre posiciones no conectadas: solo marca lo visitado y el actual.
-- Si no hay laberinto cargado, los métodos `resolver*` deben lanzar `IllegalStateException`.
+La lista lateral muestra los `.txt` de `MapaLaberintos`, relativa al directorio de ejecución. La subcarpeta `invalidos/` aparece como la sección colapsada "Ejemplos inválidos"; al elegir uno, la GUI muestra el motivo del rechazo y conserva el laberinto anterior.
 
 ## Caracteres alternativos (consola)
 
-Extra de presentación: la consola puede dibujar el laberinto con símbolos distintos. **Solo cambia lo
-que se imprime**: el archivo sigue usando `+ - | espacio # E S`, y no se toca el mapa ni el grafo.
-Cada posición sigue siendo un solo carácter (mismas filas y columnas); la conversión ocurre al imprimir.
+Extra de presentación: la consola puede dibujar el laberinto con símbolos distintos. Solo cambia lo que se imprime: el archivo sigue usando `+ - | espacio # E S` y no se tocan el mapa ni el grafo. Cada posición sigue siendo un solo carácter.
 
 | Elemento | ASCII (por defecto) | Unicode |
-|---|---|---|
+| --- | --- | --- |
 | Paredes | `+ - \|` | `─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼` (cada `+` según sus vecinos) |
-| Transitable (espacio o `#` en el archivo) | espacio | espacio |
+| Transitable (espacio o `#`) | espacio | espacio |
 | Entrada | `E` | `▶` |
 | Salida | `S` | `◆` |
 | Visitado | `.` | `·` |
@@ -86,43 +63,22 @@ Cada posición sigue siendo un solo carácter (mismas filas y columnas); la conv
 
 La entrada y la salida siempre quedan visibles.
 
-Clases (paquete `frontend.consola`): `TemaConsola` (símbolos), `RenderConsola` (arma el texto y la
-leyenda), `SalidaConsola` (UTF-8 y respaldo a ASCII), `DemoConsola` y `PruebaTema` (`main`).
+### Tema en el menú principal
 
-### Compilar y ejecutar
+Al iniciar `laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII`, ENTER o `1` eligen ASCII y `2` elige Unicode. Con `--unicode` se omite la pregunta. Las opciones 2 a 4 animan la exploración con el tema elegido y la opción 5 muestra las tres soluciones reutilizando los resultados del laberinto actual.
 
-Desde la raíz del repositorio, en una carpeta temporal para no dejar `.class` en el repo:
+### Prueba de los temas
 
-```
-javac -encoding UTF-8 -d %TEMP%\lab_con Frontend\src\frontend\modelo\*.java Frontend\src\frontend\consola\*.java
-java -cp %TEMP%\lab_con frontend.consola.DemoConsola
-java -cp %TEMP%\lab_con frontend.consola.DemoConsola --unicode
-java -cp %TEMP%\lab_con frontend.consola.PruebaTema
+```powershell
+java -cp $out frontend.consola.PruebaTema
 ```
 
-- `DemoConsola` (solo demostración, usa `ServicioDemo`) pregunta el estilo, carga un ejemplo y muestra la
-  exploración con ENTER; `f` salta al final. Acepta `--unicode` y, opcionalmente, la ruta de un `.txt`.
-- `PruebaTema` recorre los ejemplos válidos y comprueba filas y columnas, posiciones de pared y
-  transitable, y que no queden `+` sin convertir. Imprime `OK` o `FALLO` (código de salida 1).
+`PruebaTema` carga con `ServicioBase` todos los mapas válidos, resuelve con BFS y comprueba en ambos temas filas y columnas, posiciones de pared y pasillo, que no queden `+` sin convertir y que el mapa original no cambie. Imprime `OK` o `FALLO` (código de salida 1).
 
 ### UTF-8 en Windows
 
-Para ver el tema Unicode hay que usar UTF-8 en la consola y una fuente que tenga los símbolos:
-
-```
+```powershell
 chcp 65001
 ```
 
-Usa Windows Terminal, o en la consola clásica una fuente como "Consolas" o "Cascadia Mono". Si la
-consola no usa UTF-8, `SalidaConsola` avisa y vuelve a ASCII. Compila siempre con `-encoding UTF-8`.
-
-### Tema en el menú principal
-
-Al iniciar `laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII`, pulsa ENTER o elige `1`
-para usar ASCII. Elige `2` para usar Unicode. Con `--unicode` se omite la pregunta. `SalidaConsola`
-configura UTF-8 y vuelve a ASCII si la consola no admite Unicode.
-
-Las opciones 2 a 4 animan la exploración con el tema elegido. Pulsa ENTER para avanzar en modo
-manual o configura una pausa de 0 a 5000 ms. Puedes escribir `f` al elegir el modo o durante el
-avance manual para ver el resultado final. La opción 5 muestra las tres soluciones seguidas y
-reutiliza los resultados del laberinto actual.
+Usa Windows Terminal, o en la consola clásica una fuente como Consolas o Cascadia Mono. Si la consola no usa UTF-8, `SalidaConsola` avisa y vuelve a ASCII. Compila siempre con `-encoding UTF-8`.

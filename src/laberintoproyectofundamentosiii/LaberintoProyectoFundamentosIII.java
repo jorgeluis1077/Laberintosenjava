@@ -23,7 +23,8 @@ import java.util.regex.Pattern;
 public class LaberintoProyectoFundamentosIII {
     private static final Pattern LIMITE_NUMERICO = Pattern.compile("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
 
-    private enum Algoritmo {
+    /** Algoritmos del menu; tambien los usa la GUI a traves de frontend.modelo.ServicioBase. */
+    public enum Algoritmo {
         DFS("DFS", Grafo::DFS, Grafo::getUltimoCaminoDFS),
         BFS("BFS", Grafo::BFS, Grafo::getUltimoCaminoBFS),
         DIJKSTRA("Dijkstra", Grafo::caminoMasCorto, Grafo::getUltimosVisitadosDijkstra);
@@ -39,7 +40,13 @@ public class LaberintoProyectoFundamentosIII {
             this.leerComplemento = leerComplemento;
         }
 
-        ResultadoBusqueda ejecutar(Grafo grafo) {
+        @Override
+        public String toString() {
+            return nombre;
+        }
+
+        /** Mide con System.nanoTime() solo la llamada al algoritmo. */
+        public ResultadoBusqueda ejecutar(Grafo grafo) {
             long inicio = System.nanoTime();
             List<Vertice> principal = buscar.apply(grafo);
             long tiempoNanos = System.nanoTime() - inicio;
@@ -50,7 +57,7 @@ public class LaberintoProyectoFundamentosIII {
         }
     }
 
-    private record ResultadoBusqueda(List<Vertice> visitados, List<Vertice> camino, long tiempoNanos) {}
+    public record ResultadoBusqueda(List<Vertice> visitados, List<Vertice> camino, long tiempoNanos) {}
 
     public static void main(String[] args) {
         ejecutarMenu(Arrays.asList(args).contains("--unicode"));
@@ -293,7 +300,8 @@ public class LaberintoProyectoFundamentosIII {
         return validarYLeerLaberinto(archivoElegido.getPath());
     }
 
-    private static int compararNombres(String nombreA, String nombreB) {
+    /** Orden natural: laberinto2 antes que laberinto10. */
+    public static int compararNombres(String nombreA, String nombreB) {
         String[] partesA = LIMITE_NUMERICO.split(nombreA);
         String[] partesB = LIMITE_NUMERICO.split(nombreB);
         for (int i = 0; i < Math.min(partesA.length, partesB.length); i++) {
