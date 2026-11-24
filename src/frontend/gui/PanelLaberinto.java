@@ -14,7 +14,7 @@ final class PanelLaberinto extends JPanel implements Scrollable {
     static final int MARGEN = 16;
 
     private EstadoVista estado;
-    private int tam = 24;
+    private int tamanoCelda = 24;
 
     PanelLaberinto() {
         setBackground(Tema.FONDO);
@@ -30,15 +30,11 @@ final class PanelLaberinto extends JPanel implements Scrollable {
     }
 
     void setTam(int nuevo) {
-        if (nuevo != tam) {
-            tam = nuevo;
+        if (nuevo != tamanoCelda) {
+            tamanoCelda = nuevo;
             revalidate();
             repaint();
         }
-    }
-
-    int getTam() {
-        return tam;
     }
 
     @Override
@@ -46,8 +42,8 @@ final class PanelLaberinto extends JPanel implements Scrollable {
         if (estado == null) {
             return new Dimension(200, 200);
         }
-        return new Dimension(estado.datos.columnas() * tam + 2 * MARGEN,
-                estado.datos.filas() * tam + 2 * MARGEN);
+        return new Dimension(estado.datos.columnas() * tamanoCelda + 2 * MARGEN,
+                estado.datos.filas() * tamanoCelda + 2 * MARGEN);
     }
 
     @Override
@@ -61,9 +57,9 @@ final class PanelLaberinto extends JPanel implements Scrollable {
         if (clip == null) {
             clip = new Rectangle(0, 0, getWidth(), getHeight());
         }
-        int ox = Math.max(MARGEN, (getWidth() - estado.datos.columnas() * tam) / 2);
-        int oy = Math.max(MARGEN, (getHeight() - estado.datos.filas() * tam) / 2);
-        RenderLaberinto.pintar(g, estado, tam, ox, oy, clip);
+        int ox = Math.max(MARGEN, (getWidth() - estado.datos.columnas() * tamanoCelda) / 2);
+        int oy = Math.max(MARGEN, (getHeight() - estado.datos.filas() * tamanoCelda) / 2);
+        RenderLaberinto.pintar(g, estado, tamanoCelda, ox, oy, clip);
         g.dispose();
     }
 
@@ -76,12 +72,12 @@ final class PanelLaberinto extends JPanel implements Scrollable {
 
     @Override
     public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) {
-        return tam;
+        return tamanoCelda;
     }
 
     @Override
     public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) {
-        return (orientation == javax.swing.SwingConstants.VERTICAL ? visible.height : visible.width) - tam;
+        return (orientation == javax.swing.SwingConstants.VERTICAL ? visible.height : visible.width) - tamanoCelda;
     }
 
     @Override

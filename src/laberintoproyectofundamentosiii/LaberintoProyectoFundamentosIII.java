@@ -63,10 +63,6 @@ public class LaberintoProyectoFundamentosIII {
         ejecutarMenu(Arrays.asList(args).contains("--unicode"));
     }
 
-    public static void ejecutarMenu() {
-        ejecutarMenu(false);
-    }
-
     private static void ejecutarMenu(boolean unicode) {
         Scanner sc = new Scanner(System.in);
         if (!unicode) {
@@ -104,7 +100,7 @@ public class LaberintoProyectoFundamentosIII {
                 try {
                     nuevoMapa = seleccionarYLeerLaberinto(sc);
                 } catch (LaberintoInvalidoException e) {
-                    System.out.println("Error al cargar: " + e.getMessage());
+                    System.out.println("Error al cargar: " + e.getMessage() + " Se conserva el laberinto anterior.");
                     continue;
                 }
 
@@ -116,10 +112,10 @@ public class LaberintoProyectoFundamentosIII {
                         resultados.clear();
                         System.out.println("Se cargo el archivo y se construyo el grafo.\n" + nuevoMapa);
                     } else {
-                        System.out.println("No se pudo construir el grafo (verifica inicio y meta). Se mantiene el anterior.");
+                        System.out.println("No se pudo construir el grafo (verifica inicio y meta). Se conserva el laberinto anterior.");
                     }
                 } else {
-                    System.out.println("Fallo al cargar. Se mantiene el laberinto anterior, si es que ya existia");
+                    System.out.println("Carga cancelada. Se conserva el laberinto anterior.");
                 }
             } else if (opcion >= 2 && opcion <= 5) {
                 if (grafo == null) {
@@ -200,17 +196,10 @@ public class LaberintoProyectoFundamentosIII {
                     }
                 }
 
-                // Usamos directamente tu constructor: new Vertice(fila, columna, entrada, salida)
                 Vertice v = new Vertice(f, c, esEntrada, esSalida);
                 matrizVertices[f][c] = v;
                 grafo.agregarVertice(v);
 
-                if (esEntrada) {
-                    grafo.setInicio(v);
-                }
-                if (esSalida) {
-                    grafo.setMeta(v);
-                }
             }
         }
 
@@ -241,7 +230,7 @@ public class LaberintoProyectoFundamentosIII {
         return grafo;
     }
 
-    public static String seleccionarYLeerLaberinto(Scanner sc) throws LaberintoInvalidoException {
+    private static String seleccionarYLeerLaberinto(Scanner sc) throws LaberintoInvalidoException {
         System.out.print("Ruta del archivo (ENTER para listar los mapas): ");
         if (!sc.hasNextLine()) {
             return null;
@@ -262,8 +251,7 @@ public class LaberintoProyectoFundamentosIII {
         );
 
         if (archivosTxt == null || archivosTxt.length == 0) {
-            System.out.println("No se encontraron archivos .txt en: " + carpeta.getAbsolutePath());
-            return null;
+            throw new LaberintoInvalidoException("No se encontraron archivos .txt en: " + carpeta.getAbsolutePath());
         }
 
         Arrays.sort(archivosTxt, (a, b) -> compararNombres(a.getName(), b.getName()));
@@ -281,18 +269,15 @@ public class LaberintoProyectoFundamentosIII {
         try {
             eleccion = Integer.parseInt(sc.nextLine().trim());
         } catch (NumberFormatException e) {
-            System.out.println("Debes ingresar un numero valido.");
-            return null;
+            throw new LaberintoInvalidoException("Debes ingresar un numero valido.", e);
         }
 
         if (eleccion == 0) {
-            System.out.println("Carga cancelada.");
             return null;
         }
 
         if (eleccion < 1 || eleccion > archivosTxt.length) {
-            System.out.println("Numero fuera de rango.");
-            return null;
+            throw new LaberintoInvalidoException("Numero fuera de rango.");
         }
 
         File archivoElegido = archivosTxt[eleccion - 1];

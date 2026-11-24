@@ -32,11 +32,11 @@ final class MiniLaberinto extends JPanel {
         int filas = estado.datos.filas();
         int cols = estado.datos.columnas();
         int margen = 6;
-        int tam = Math.max(1, Math.min((getWidth() - 2 * margen) / cols, (getHeight() - 2 * margen) / filas));
-        int ox = (getWidth() - cols * tam) / 2;
-        int oy = (getHeight() - filas * tam) / 2;
+        int tamanoCelda = Math.max(1, Math.min((getWidth() - 2 * margen) / cols, (getHeight() - 2 * margen) / filas));
+        int ox = (getWidth() - cols * tamanoCelda) / 2;
+        int oy = (getHeight() - filas * tamanoCelda) / 2;
         Graphics2D g = (Graphics2D) g0.create();
-        RenderLaberinto.pintar(g, estado, tam, ox, oy, new Rectangle(0, 0, getWidth(), getHeight()));
+        RenderLaberinto.pintar(g, estado, tamanoCelda, ox, oy, new Rectangle(0, 0, getWidth(), getHeight()));
         g.dispose();
     }
 }

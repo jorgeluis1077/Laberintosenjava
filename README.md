@@ -1,6 +1,6 @@
 # LaberintoProyectoFundamentosIII
 
-Resolución de laberintos de texto mediante grafos en Java. El programa carga un mapa desde un archivo `.txt`, lo valida, lo modela como un grafo dirigido con listas de adyacencia y lo resuelve con DFS, BFS y Dijkstra. Incluye un menú de consola con animación de la exploración, medición de tiempos, dos temas de caracteres (ASCII y Unicode) y una interfaz gráfica con Swing conectada a la misma lógica.
+Resolución de laberintos de texto mediante grafos en Java. El programa carga un mapa desde un archivo `.txt`, lo valida, lo modela como un grafo no dirigido: cada conexión se guarda como dos arcos (ida y vuelta) de costo 1. Lo resuelve con DFS, BFS y Dijkstra. Incluye un menú de consola con animación de la exploración, medición de tiempos, dos temas de caracteres (ASCII y Unicode) y una interfaz gráfica con Swing conectada a la misma lógica.
 
 ## Tabla de contenido
 
@@ -25,7 +25,7 @@ Resolución de laberintos de texto mediante grafos en Java. El programa carga un
 | --- | --- |
 | Mario Francisco Ramirez Morales | MarioJavaScript |
 | Jorge Luis Guarista Tanori | jorgeluis1077 |
-| Sergio Carrillo Osorio | sergiocarrilli42-debug |
+| Sergio Carrillo Osorio (Sergipato) | sergiocarrilli42-debug |
 
 ## Fecha de entrega
 
@@ -69,10 +69,10 @@ Laberintosenjava/
 | --- | --- |
 | `LaberintoProyectoFundamentosIII` | Clase principal: menú, selección de archivo, validación y lectura del mapa (`validarYLeerLaberinto`), construcción del grafo (`construirGrafoDesdeMapa`), enumeración `Algoritmo` que mide el tiempo de cada búsqueda y orden natural de nombres de archivo. |
 | `LaberintoInvalidoException` | Excepción con el motivo legible por el que un mapa se rechaza. |
-| `Grafo` | Grafo dirigido con listas ligadas de adyacencia; implementa `DFS()`, `BFS()` y `caminoMasCorto()` (Dijkstra) y expone sus resultados complementarios con `getUltimoCaminoDFS()`, `getUltimoCaminoBFS()` y `getUltimosVisitadosDijkstra()`. |
+| `Grafo` | Grafo no dirigido: cada conexión se guarda como dos arcos (ida y vuelta) de costo 1 en listas ligadas de adyacencia; implementa `DFS()`, `BFS()` y `caminoMasCorto()` (Dijkstra) y expone sus resultados complementarios con `getUltimoCaminoDFS()`, `getUltimoCaminoBFS()` y `getUltimosVisitadosDijkstra()`. |
 | `Vertice` | Celda transitable: fila, columna, id y marcas de entrada y salida. |
 | `Vertices` | Colección de vértices indexada por id (`Hashtable<Integer, Vertice>`). |
-| `Arcos` | Arco dirigido entre dos vértices con su peso. |
+| `Arcos` | Arco de una conexión; cada conexión se representa con dos arcos de costo 1. |
 | `Despliegue` | Presentación en consola: animación paso a paso, resultado final, leyenda y tiempo; contiene la única conversión de vértices a celdas del frontend. |
 
 ### Frontend (`frontend`)
@@ -289,7 +289,7 @@ Como todos los arcos pesan 1, BFS y Dijkstra encuentran caminos de la misma long
 | Integrante | Responsabilidades |
 | --- | --- |
 | Mario Ramírez (MarioJavaScript) | Reestructuración del repositorio, correcciones de la base (lectura y validación, grafo, Dijkstra, DFS), despliegue en consola, tiempos de ejecución y extras (caracteres alternativos, GUI Swing y README). |
-| jorgeluis1077 | Implementación de DFS y BFS en `Grafo`, conexión de DFS, BFS y camino más corto en el menú principal, y mapas `laberinto6.txt` a `laberinto10.txt`. |
+| Jorge Luis Guarista Tanori | Implementación de DFS y BFS en `Grafo`, conexión de DFS, BFS y camino más corto en el menú principal, y mapas `laberinto6.txt` a `laberinto10.txt`. |
 | Sergipato (sergiocarrilli42-debug) | Menú principal y carga de archivos desde una lista, clases `Grafo`, `Vertice`, `Vertices` y `Arcos`, primera implementación de Dijkstra, mapas `laberinto1.txt` a `laberinto5.txt` y README inicial. |
 
 ## Declaración de uso de IA

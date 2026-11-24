@@ -11,9 +11,6 @@ public class Arcos {
         this.destino = destino;
         this.peso = peso;
     }
-    public Vertice getOrigen(){
-        return origen;
-    }
     public Vertice getDestino(){
         return destino;
     }

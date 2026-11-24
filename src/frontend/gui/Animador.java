@@ -16,7 +16,7 @@ final class Animador {
     Animador(IntConsumer alPaso, Runnable alTerminar) {
         this.alPaso = alPaso;
         this.alTerminar = alTerminar;
-        this.timer = new Timer(30, e -> tick());
+        this.timer = new Timer(30, e -> alPulso());
     }
 
     /** Velocidad de 1 (lenta) a 10 (rapida). */
@@ -72,7 +72,7 @@ final class Animador {
         paso = 0;
     }
 
-    private void tick() {
+    private void alPulso() {
         avanzar(pasosPorTick);
     }
 

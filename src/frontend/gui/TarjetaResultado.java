@@ -12,6 +12,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.util.Map;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -144,6 +145,21 @@ final class TarjetaResultado extends JPanel {
         }
         revalidate();
         repaint();
+    }
+
+    static void actualizarTodas(Map<String, TarjetaResultado> tarjetas, DatosLaberinto datos,
+                                Map<String, ResultadoVista> resultados) {
+        Formato.Marcas marcas = Formato.marcas(resultados.values());
+        for (Map.Entry<String, TarjetaResultado> entrada : tarjetas.entrySet()) {
+            ResultadoVista resultado = resultados.get(entrada.getKey());
+            if (resultado == null) {
+                entrada.getValue().vaciar();
+            } else {
+                entrada.getValue().mostrar(datos, resultado,
+                        marcas.menosVisitados().contains(resultado.algoritmo()),
+                        marcas.caminoMinimo().contains(resultado.algoritmo()));
+            }
+        }
     }
 
     @Override

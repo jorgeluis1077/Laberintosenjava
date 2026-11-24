@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -20,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
 /** Panel lateral con la lista de laberintos de ejemplo (un clic carga). */
@@ -27,6 +29,7 @@ final class PanelEjemplos extends JPanel {
 
     private final ServicioLaberinto servicio;
     private final Consumer<Path> alElegir;
+    private final Consumer<Boolean> alOcupar;
     private final DefaultListModel<Path> modeloValidos = new DefaultListModel<>();
     private final DefaultListModel<Path> modeloInvalidos = new DefaultListModel<>();
     private final JList<Path> listaValidos = crearLista(modeloValidos);
@@ -43,9 +46,10 @@ final class PanelEjemplos extends JPanel {
     private boolean suprimir;
     private boolean invalidosAbierta;
 
-    PanelEjemplos(ServicioLaberinto servicio, Consumer<Path> alElegir) {
+    PanelEjemplos(ServicioLaberinto servicio, Consumer<Path> alElegir, Consumer<Boolean> alOcupar) {
         this.servicio = servicio;
         this.alElegir = alElegir;
+        this.alOcupar = alOcupar;
         setBackground(Tema.PANEL);
         setLayout(new BorderLayout(0, 10));
         setBorder(BorderFactory.createCompoundBorder(
@@ -87,7 +91,6 @@ final class PanelEjemplos extends JPanel {
         btnActualizar.addActionListener(e -> actualizar());
         conectar(listaValidos, listaInvalidos);
         conectar(listaInvalidos, listaValidos);
-        actualizar();
     }
 
     private JList<Path> crearLista(DefaultListModel<Path> modelo) {
@@ -124,13 +127,44 @@ final class PanelEjemplos extends JPanel {
 
     /** Vuelve a leer la carpeta y conserva la seleccion si el archivo sigue en la lista. */
     void actualizar() {
+        alOcupar.accept(true);
+        btnActualizar.setEnabled(false);
+        new SwingWorker<Catalogo, Void>() {
+            @Override
+            protected Catalogo doInBackground() {
+                return new Catalogo(servicio.listarEjemplos(), servicio.listarEjemplosInvalidos(),
+                        servicio.carpetaEjemplos().isPresent());
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    aplicar(get());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    sinCarpeta.setText("No se pudo listar los ejemplos: " + e.getCause().getMessage());
+                    centro.removeAll();
+                    centro.add(sinCarpeta, BorderLayout.NORTH);
+                    centro.revalidate();
+                    centro.repaint();
+                } finally {
+                    alOcupar.accept(false);
+                }
+            }
+        }.execute();
+    }
+
+    private record Catalogo(List<Path> validos, List<Path> invalidos, boolean existeCarpeta) {}
+
+    private void aplicar(Catalogo catalogo) {
         suprimir = true;
         modeloValidos.clear();
         modeloInvalidos.clear();
-        servicio.listarEjemplos().forEach(modeloValidos::addElement);
-        servicio.listarEjemplosInvalidos().forEach(modeloInvalidos::addElement);
+        catalogo.validos().forEach(modeloValidos::addElement);
+        catalogo.invalidos().forEach(modeloInvalidos::addElement);
         centro.removeAll();
-        if (servicio.carpetaEjemplos().isPresent()) {
+        if (catalogo.existeCarpeta()) {
             centro.add(scrollValidos, BorderLayout.CENTER);
         } else {
             centro.add(sinCarpeta, BorderLayout.NORTH);
@@ -182,9 +216,10 @@ final class PanelEjemplos extends JPanel {
         }
     }
 
-    void setHabilitado(boolean on) {
-        listaValidos.setEnabled(on);
-        listaInvalidos.setEnabled(on);
-        btnActualizar.setEnabled(on);
+    void setHabilitado(boolean habilitado) {
+        listaValidos.setEnabled(habilitado);
+        listaInvalidos.setEnabled(habilitado);
+        btnActualizar.setEnabled(habilitado);
+        cabeceraInvalidos.setEnabled(habilitado);
     }
 }

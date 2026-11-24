@@ -58,11 +58,10 @@ public final class RenderConsola {
                     ch = tema.entrada();
                 } else if (f == datos.salidaFila() && c == datos.salidaCol()) {
                     ch = tema.salida();
-                } else {
-                    if (visitado[f][c]) ch = tema.visitado();
-                    if (actual != null && actual.fila() == f && actual.columna() == c) ch = tema.actual();
-                    if (camino[f][c]) ch = tema.camino();
                 }
+                if (visitado[f][c] && ch == tema.transitable()) ch = tema.visitado();
+                if (actual != null && actual.fila() == f && actual.columna() == c) ch = tema.actual();
+                if (camino[f][c]) ch = tema.camino();
                 sb.append(ch);
             }
             sb.append('\n');

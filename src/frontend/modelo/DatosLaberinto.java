@@ -25,14 +25,6 @@ public record DatosLaberinto(String nombreArchivo, char[][] mapa,
         return c == '+' || c == '-' || c == '|';
     }
 
-    public Celda entrada() {
-        return new Celda(entradaFila, entradaCol);
-    }
-
-    public Celda salida() {
-        return new Celda(salidaFila, salidaCol);
-    }
-
     public DatosLaberinto conNombre(String nombre) {
         return new DatosLaberinto(nombre, mapa, entradaFila, entradaCol, salidaFila, salidaCol);
     }

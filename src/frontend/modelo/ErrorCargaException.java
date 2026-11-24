@@ -7,4 +7,8 @@ public class ErrorCargaException extends Exception {
     public ErrorCargaException(String mensaje) {
         super(mensaje);
     }
+
+    public ErrorCargaException(String mensaje, Throwable causa) {
+        super(mensaje, causa);
+    }
 }

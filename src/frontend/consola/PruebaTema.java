@@ -25,7 +25,7 @@ public final class PruebaTema {
         ServicioLaberinto servicio = new ServicioBase();
         List<Path> archivos = servicio.listarEjemplos();
         if (archivos.isEmpty()) {
-            System.out.println("FALLO: no se encontraron ejemplos (ejemplos/ o MapaLaberintos/).");
+            System.out.println("FALLO: no se encontraron ejemplos en MapaLaberintos/.");
             System.exit(1);
         }
         int comprobados = 0;
@@ -35,8 +35,7 @@ public final class PruebaTema {
                 try {
                     datos = servicio.cargar(archivo);
                 } catch (ErrorCargaException e) {
-                    System.out.println("OMITIDO " + archivo.getFileName() + ": " + e.getMessage());
-                    continue;
+                    throw new AssertionError(archivo.getFileName() + ": " + e.getMessage());
                 }
                 char[][] copia = new char[datos.filas()][];
                 for (int f = 0; f < copia.length; f++) {
@@ -55,6 +54,10 @@ public final class PruebaTema {
             }
         } catch (AssertionError fallo) {
             System.out.println("FALLO: " + fallo.getMessage());
+            System.exit(1);
+        }
+        if (comprobados == 0) {
+            System.out.println("FALLO: no se comprobó ningún laberinto.");
             System.exit(1);
         }
         System.out.println("OK: " + comprobados + " laberintos comprobados en ASCII y Unicode.");

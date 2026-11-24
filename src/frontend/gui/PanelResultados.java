@@ -45,15 +45,6 @@ final class PanelResultados extends JPanel {
     }
 
     void actualizar(DatosLaberinto datos, Map<String, ResultadoVista> resultados) {
-        Formato.Marcas m = Formato.marcas(resultados.values());
-        for (Map.Entry<String, TarjetaResultado> e : tarjetas.entrySet()) {
-            ResultadoVista r = resultados.get(e.getKey());
-            if (r == null) {
-                e.getValue().vaciar();
-            } else {
-                e.getValue().mostrar(datos, r, m.menosVisitados().contains(r.algoritmo()),
-                        m.caminoMinimo().contains(r.algoritmo()));
-            }
-        }
+        TarjetaResultado.actualizarTodas(tarjetas, datos, resultados);
     }
 }
