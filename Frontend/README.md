@@ -66,3 +66,67 @@ Notas para el adaptador:
   del camino también son celdas del mapa.
 - La GUI no inventa movimientos entre posiciones no conectadas: solo marca lo visitado y el actual.
 - Si no hay laberinto cargado, los métodos `resolver*` deben lanzar `IllegalStateException`.
+
+## Caracteres alternativos (consola)
+
+Extra de presentación: la consola puede dibujar el laberinto con símbolos distintos. **Solo cambia lo
+que se imprime**: el archivo sigue usando `+ - | espacio # E S`, y no se toca el mapa ni el grafo.
+Cada posición sigue siendo un solo carácter (mismas filas y columnas); la conversión ocurre al imprimir.
+
+| Elemento | ASCII (por defecto) | Unicode |
+|---|---|---|
+| Paredes | `+ - \|` | `─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼` (cada `+` según sus vecinos) |
+| Transitable | espacio | espacio |
+| Entrada | `E` | `▶` |
+| Salida | `S` | `◆` |
+| Visitado | `.` | `·` |
+| Vértice actual | `@` | `◉` |
+| Camino final | `*` | `●` |
+
+Las `#` se conservan en ambos temas. La entrada y la salida siempre quedan visibles.
+
+Clases (paquete `frontend.consola`): `TemaConsola` (símbolos), `RenderConsola` (arma el texto y la
+leyenda), `SalidaConsola` (UTF-8 y respaldo a ASCII), `DemoConsola` y `PruebaTema` (`main`).
+
+### Compilar y ejecutar
+
+Desde la raíz del repositorio, en una carpeta temporal para no dejar `.class` en el repo:
+
+```
+javac -encoding UTF-8 -d %TEMP%\lab_con Frontend\src\frontend\modelo\*.java Frontend\src\frontend\consola\*.java
+java -cp %TEMP%\lab_con frontend.consola.DemoConsola
+java -cp %TEMP%\lab_con frontend.consola.DemoConsola --unicode
+java -cp %TEMP%\lab_con frontend.consola.PruebaTema
+```
+
+- `DemoConsola` (solo demostración, usa `ServicioDemo`) pregunta el estilo, carga un ejemplo y muestra la
+  exploración con ENTER; `f` salta al final. Acepta `--unicode` y, opcionalmente, la ruta de un `.txt`.
+- `PruebaTema` recorre los ejemplos válidos y comprueba filas y columnas, posiciones de pared y
+  transitable, y que no queden `+` sin convertir. Imprime `OK` o `FALLO` (código de salida 1).
+
+### UTF-8 en Windows
+
+Para ver el tema Unicode hay que usar UTF-8 en la consola y una fuente que tenga los símbolos:
+
+```
+chcp 65001
+```
+
+Usa Windows Terminal, o en la consola clásica una fuente como "Consolas" o "Cascadia Mono". Si la
+consola no usa UTF-8, `SalidaConsola` avisa y vuelve a ASCII. Compila siempre con `-encoding UTF-8`.
+
+### Cómo conectar con la base real
+
+1. Al arrancar el menú, llamar a `SalidaConsola.configurar(TemaConsola.ASCII)` (o `UNICODE`); devuelve
+   el tema efectivo, que puede ser ASCII si la consola no admite Unicode. **Aquí se cambia el tema**
+   (por ejemplo con una opción de menú o el argumento `--unicode`).
+2. Donde el menú imprime el laberinto, reemplazar el dibujo por
+   `RenderConsola.vista(datos, resultado, pasos, mostrarCamino, tema)` y luego
+   `RenderConsola.leyenda(tema)`:
+   - `datos`: un `DatosLaberinto` (convertir el mapa de la base a `char[][]`, entrada y salida).
+   - `resultado`: un `ResultadoVista` con `visitados` y `camino` (o `null` si solo se muestra el mapa).
+   - `pasos`: cuántos visitados mostrar; el último es el vértice actual. Para mostrar todo, `visitados.size()`.
+   - `mostrarCamino`: `true` solo al final y si hay solución.
+3. Si no hay solución, mostrar la exploración completa y el mensaje "No existe camino entre la
+   entrada y la salida", sin longitud.
+4. Las coordenadas de `Celda` son las de la matriz de caracteres, igual que en la GUI.
