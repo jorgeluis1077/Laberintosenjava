@@ -78,12 +78,14 @@ public class LaberintoProyectoFundamentosIII {
                     resultadoDFS = grafo.DFS();
                     caminoDFS = grafo.getUltimoCaminoDFS();
                     hayDFS = grafo.isUltimaSolucionDFS();
+                    System.out.println("Visitados DFS: " + resultadoDFS);
                     mostrarRuta("Camino DFS", caminoDFS, hayDFS);
                 } else if (opcion == 3) {
                     System.out.println("Ejecutando BFS...");
                     resultadoBFS = grafo.BFS();
                     caminoBFS = grafo.getUltimoCaminoBFS();
                     hayBFS = grafo.isUltimaSolucionBFS();
+                    System.out.println("Visitados BFS: " + resultadoBFS);
                     mostrarRuta("Camino BFS", caminoBFS, hayBFS);
                 } else if (opcion == 4) {
                     System.out.println("Ejecutando Dijkstra (caminoMasCorto)...");

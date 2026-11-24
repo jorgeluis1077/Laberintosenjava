@@ -107,9 +107,7 @@ public class Grafo {
         this.ultimoCaminoDFS = new ArrayList<Vertice>();
         this.ultimaSolucionDFS = false;
 
-        if (this.vertices == null || origen == null || destino == null
-               ) {
-            System.out.println("DFS: Uno o ambos vértices no existen en el grafo.");
+        if (this.vertices == null || origen == null || destino == null) {
             return visitados;
         }
 
@@ -131,11 +129,9 @@ public class Grafo {
         int idDestino = destino.getId();
 
         if (!visitadoMapa.containsKey(idOrigen) || !visitadoMapa.containsKey(idDestino)) {
-            System.out.println("DFS: Uno o ambos vértices no existen en el grafo.");
             return visitados;
         }
 
-        System.out.println("Recorrido DFS desde " + origen + " hasta " + destino + ":");
 
         // Lista usada como pila (LIFO) exclusiva de DFS
         List<Vertice> pilaDFS = new ArrayList<Vertice>();
@@ -155,10 +151,8 @@ public class Grafo {
 
             visitadoMapa.put(idActual, true);
             visitados.add(verticeActual);
-            System.out.print(verticeActual + " ");
 
             if (idActual == idDestino) {
-                System.out.println("\nDFS: Se ha alcanzado el vértice final.");
                 this.ultimaSolucionDFS = true;
                 this.ultimoCaminoDFS = reconstruirCamino(origen, destino, predecesores);
                 return visitados;
@@ -195,7 +189,6 @@ public class Grafo {
             }
         }
 
-        System.out.println("\nDFS: No se encontró un camino hacia el vértice final.");
         return visitados;
     }
 
@@ -220,9 +213,7 @@ public class Grafo {
         this.ultimoCaminoBFS = new ArrayList<Vertice>();
         this.ultimaSolucionBFS = false;
 
-        if (this.vertices == null || origen == null || destino == null
-               ) {
-            System.out.println("BFS: Uno o ambos vértices no existen en el grafo.");
+        if (this.vertices == null || origen == null || destino == null) {
             return visitados;
         }
 
@@ -244,11 +235,9 @@ public class Grafo {
         int idDestino = destino.getId();
 
         if (!visitadoMapa.containsKey(idOrigen) || !visitadoMapa.containsKey(idDestino)) {
-            System.out.println("BFS: Uno o ambos vértices no existen en el grafo.");
             return visitados;
         }
 
-        System.out.println("Recorrido BFS desde " + origen + " hasta " + destino + ":");
 
         // Lista usada como cola (FIFO): se agrega al final y se saca del índice 0
         List<Vertice> colaBFS = new ArrayList<Vertice>();
@@ -263,10 +252,8 @@ public class Grafo {
 
             int idActual = verticeActual.getId();
             visitados.add(verticeActual);
-            System.out.print(verticeActual + " ");
 
             if (idActual == idDestino) {
-                System.out.println("\nBFS: Se ha alcanzado el vértice final.");
                 this.ultimaSolucionBFS = true;
                 this.ultimoCaminoBFS = reconstruirCamino(origen, destino, predecesores);
                 return visitados;
@@ -304,7 +291,6 @@ public class Grafo {
             }
         }
 
-        System.out.println("\nBFS: No se encontró un camino hacia el vértice final.");
         return visitados;
     }
 
@@ -327,8 +313,7 @@ public class Grafo {
     public List<Vertice> caminoMasCorto(Vertice origen, Vertice destino) {
         List<Vertice> rutaMasCorta = new ArrayList<Vertice>();
 
-        if (this.vertices == null || origen == null || destino == null
-               ) {
+        if (this.vertices == null || origen == null || destino == null) {
             return rutaMasCorta;
         }
 
