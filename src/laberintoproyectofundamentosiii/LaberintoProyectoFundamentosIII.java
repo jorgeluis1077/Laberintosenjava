@@ -130,7 +130,7 @@ public class LaberintoProyectoFundamentosIII {
         System.out.println("Ruta: " + camino);
     }
 
-    private static Grafo construirGrafoDesdeMapa(String mapa) {
+    public static Grafo construirGrafoDesdeMapa(String mapa) {
         if (mapa == null || mapa.isEmpty()) {
             return null;
         }
@@ -191,8 +191,9 @@ public class LaberintoProyectoFundamentosIII {
             }
         }
 
-        int[] df = {-1, 1, 0, 0};
-        int[] dc = {0, 0, -1, 1};
+        // Orden de vecinos: arriba, derecha, abajo, izquierda
+        int[] df = {-1, 0, 1, 0};
+        int[] dc = {0, 1, 0, -1};
 
         for (int f = 0; f < filas; f++) {
             for (int c = 0; c < columnas; c++) {
@@ -207,9 +208,7 @@ public class LaberintoProyectoFundamentosIII {
                     if (nf >= 0 && nf < filas && nc >= 0 && nc < columnas) {
                         Vertice destino = matrizVertices[nf][nc];
                         if (destino != null) {
-                            char chDest = renglones[nf].charAt(nc);
-                            int peso = (chDest == '#') ? 5 : 1;
-                            grafo.agregarArco(origen, destino, peso);
+                            grafo.agregarArco(origen, destino, 1);
                         }
                     }
                 }
