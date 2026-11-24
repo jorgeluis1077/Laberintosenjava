@@ -1,46 +1,31 @@
 # LaberintoProyectoFundamentosIII
 
-Resolución de laberintos de texto mediante grafos en Java, con interfaz de consola y menú interactivo.
+Resolución de laberintos de texto mediante grafos en Java. El programa carga un mapa desde un archivo `.txt`, lo valida, lo modela como un grafo dirigido con listas de adyacencia y lo resuelve con DFS, BFS y Dijkstra. Incluye un menú de consola con animación de la exploración, medición de tiempos, dos temas de caracteres (ASCII y Unicode) y una interfaz gráfica con Swing conectada a la misma lógica.
 
-> **Nota de verificación:** este documento conserva la descripción original del proyecto. Algunas funciones descritas todavía no están conectadas al programa principal; consulta [Estado del proyecto](#estado-del-proyecto).
+## Tabla de contenido
 
-## Contenido
+1. [Autores](#autores)
+2. [Fecha de entrega](#fecha-de-entrega)
+3. [Requisitos y dependencias](#requisitos-y-dependencias)
+4. [Estructura del repositorio](#estructura-del-repositorio)
+5. [Compilación y ejecución](#compilación-y-ejecución)
+6. [Formato de entrada](#formato-de-entrada)
+7. [Menú principal](#menú-principal)
+8. [Símbolos de presentación](#símbolos-de-presentación)
+9. [Representación del grafo y algoritmos](#representación-del-grafo-y-algoritmos)
+10. [Tiempos de ejecución](#tiempos-de-ejecución)
+11. [Mapas de prueba](#mapas-de-prueba)
+12. [Extras implementados](#extras-implementados)
+13. [Responsabilidades](#responsabilidades)
+14. [Declaración de uso de IA](#declaración-de-uso-de-ia)
 
-- [Descripción del proyecto](#descripción-del-proyecto)
-- [Autores y responsabilidades](#autores-y-responsabilidades)
-- [Fecha de entrega](#fecha-de-entrega)
-- [Requisitos y dependencias](#requisitos-y-dependencias)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Compilación y ejecución](#compilación-y-ejecución)
-- [Formato de entrada y símbolos](#formato-de-entrada-y-símbolos)
-- [Menú principal](#menú-principal)
-- [Representación del grafo y recorridos](#representación-del-grafo-y-recorridos)
-- [Uso de IA](#uso-de-ia)
-- [Estado del proyecto](#estado-del-proyecto)
-
-## Descripción del proyecto
-
-El programa carga laberintos desde archivos `.txt`, los modela como grafos y plantea resolverlos mediante algoritmos de búsqueda y camino más corto desde la entrada hasta la meta.
-
-La descripción original indica que el sistema valida la estructura de los mapas, construye vértices y arcos, y permite ejecutar distintos recorridos. También indica que cada algoritmo reinicia su estado en cada ejecución, registra los vértices visitados en orden de procesamiento sin duplicados, guarda predecesores para reconstruir el camino final, evita mostrar una longitud de 0 cuando no hay solución y termina al procesar la meta o agotar los vértices alcanzables. **Estas afirmaciones sobre todos los algoritmos están pendientes de verificar en la aplicación integrada**; el estado actual del código se detalla al final.
-
-## Autores y responsabilidades
+## Autores
 
 | Integrante | Usuario de GitHub |
 | --- | --- |
-| Mario Ramírez | MarioJavaScript |
-| jorgeluis1077 | jorgeluis1077 |
-| Sergipato (sergiocarrilli42-debug) | sergiocarrilli42-debug |
-
-El README anterior nombraba a **Mario Francisco Ramirez Morales**, **Jorge Luis Guarista Tanori** y **Sergio Carrillo Osorio**. Los campos de autor de los commits de Jorge y Sergio solo muestran `jorgeluis1077` y `Sergipato`, respectivamente; por ello la tabla usa las identidades de GitHub indicadas para esta entrega.
-
-| Integrante | Responsabilidad |
-| --- | --- |
-| Mario Ramírez | Puntos extras: caracteres alternativos, interfaz gráfica con Swing y tiempos de solución; formato del README. El README anterior también le asignaba auditoría y frontend. |
-| jorgeluis1077 | Aportó mapas de laberinto 6 a 10, según sus commits y los archivos que añadió. |
-| sergiocarrilli42-debug | Añadió las clases del grafo y `CaminoMasCorto`, el selector y lector de archivos, mapas y documentación del proyecto. |
-
-**Atribuciones que ya figuraban en el README:** a Sergio se le asignaban la implementación de `CaminoMasCorto` (Dijkstra), la integración del menú y las pruebas de recorrido; a Jorge, la implementación de DFS y BFS. Se conservan como antecedentes documentales. El historial disponible respalda los archivos indicados en la tabla; la implementación de DFS y BFS no aparece en el código actual.
+| Mario Francisco Ramirez Morales | MarioJavaScript |
+| Jorge Luis Guarista Tanori | jorgeluis1077 |
+| Sergio Carrillo Osorio | sergiocarrilli42-debug |
 
 ## Fecha de entrega
 
@@ -48,88 +33,133 @@ El README anterior nombraba a **Mario Francisco Ramirez Morales**, **Jorge Luis 
 
 ## Requisitos y dependencias
 
-| Elemento | Requisito indicado |
+| Elemento | Requisito |
 | --- | --- |
-| Lenguaje y versión | Java JDK 25. |
-| Entorno de desarrollo | Apache NetBeans IDE; el proyecto usa el paquete `laberintoproyectofundamentosiii`. |
-| Dependencias externas | Ninguna. Se utiliza únicamente la biblioteca estándar de Java, por ejemplo `java.util.*` y `java.io.*`. |
-| Sistema operativo | Compatible con Windows, Linux y macOS; probado en Windows con NetBeans y consola, según el README original. |
+| Lenguaje | Java, JDK 17 o superior (se usan `record`, `switch` con flechas y `Stream.toList()`). |
+| Dependencias externas | Ninguna. Solo la biblioteca estándar: `java.util`, `java.nio.file` y `javax.swing`. |
+| Sistema operativo | Windows, Linux o macOS. |
+| Consola para el tema Unicode | UTF-8 y una fuente con los símbolos de caja (por ejemplo Cascadia Mono o Consolas). |
 
 ## Estructura del repositorio
 
 ```text
 Laberintosenjava/
-├── Clases/src/
-│   ├── Arcos.java                 Arco entre vértices y su peso.
-│   ├── CaminoMasCorto.java        Dijkstra y reconstrucción del camino.
-│   ├── Grafo.java                 Listas de adyacencia y construcción desde un mapa.
-│   ├── Vertice.java               Coordenadas, clave y marcas de entrada y salida.
-│   └── Vertices.java              Colección de vértices indexada por clave.
-├── LaberintoProyectoFundamentosIII/src/
-│   └── LaberintoProyectoFundamentosIII.java  Clase principal, menú, selección y validación de archivos .txt.
-├── MapaLaberintos/
-│   └── laberinto1.txt ... laberinto10.txt    Mapas de ejemplo.
-└── README.md                      Documentación del proyecto.
+├── MapaLaberintos/              Mapas de ejemplo (.txt); invalidos/ contiene mapas que deben rechazarse
+├── docs/
+│   └── FRONTEND.md              Detalles de la GUI Swing y de los temas de consola
+├── src/
+│   ├── laberintoproyectofundamentosiii/   Base del proyecto
+│   │   ├── LaberintoProyectoFundamentosIII.java
+│   │   ├── LaberintoInvalidoException.java
+│   │   ├── Grafo.java
+│   │   ├── Vertice.java
+│   │   ├── Vertices.java
+│   │   ├── Arcos.java
+│   │   └── Despliegue.java
+│   └── frontend/
+│       ├── modelo/              Tipos compartidos y adaptador hacia la base
+│       ├── consola/             Temas y dibujo en consola
+│       └── gui/                 Interfaz gráfica Swing
+└── README.md
 ```
+
+### Base (`laberintoproyectofundamentosiii`)
+
+| Clase | Descripción |
+| --- | --- |
+| `LaberintoProyectoFundamentosIII` | Clase principal: menú, selección de archivo, validación y lectura del mapa (`validarYLeerLaberinto`), construcción del grafo (`construirGrafoDesdeMapa`), enumeración `Algoritmo` que mide el tiempo de cada búsqueda y orden natural de nombres de archivo. |
+| `LaberintoInvalidoException` | Excepción con el motivo legible por el que un mapa se rechaza. |
+| `Grafo` | Grafo dirigido con listas ligadas de adyacencia; implementa `DFS()`, `BFS()` y `caminoMasCorto()` (Dijkstra) y expone sus resultados complementarios con `getUltimoCaminoDFS()`, `getUltimoCaminoBFS()` y `getUltimosVisitadosDijkstra()`. |
+| `Vertice` | Celda transitable: fila, columna, id y marcas de entrada y salida. |
+| `Vertices` | Colección de vértices indexada por id (`Hashtable<Integer, Vertice>`). |
+| `Arcos` | Arco dirigido entre dos vértices con su peso. |
+| `Despliegue` | Presentación en consola: animación paso a paso, resultado final, leyenda y tiempo; contiene la única conversión de vértices a celdas del frontend. |
+
+### Frontend (`frontend`)
+
+| Paquete | Clase | Descripción |
+| --- | --- | --- |
+| `modelo` | `Celda` | Posición inmutable (fila, columna). |
+| `modelo` | `DatosLaberinto` | Mapa de caracteres con entrada, salida y nombre del archivo. |
+| `modelo` | `ResultadoVista` | Visitados, camino, si hubo solución y tiempo de un algoritmo. |
+| `modelo` | `ErrorCargaException` | Error de carga con mensaje para el usuario. |
+| `modelo` | `ServicioLaberinto` | Interfaz que usa la GUI; es su único contacto con la lógica. |
+| `modelo` | `ServicioBase` | Implementación real: usa la carga y el `Grafo` de la base, mide los tiempos y guarda los resultados del laberinto actual. |
+| `consola` | `TemaConsola` | Símbolos de los temas ASCII y Unicode. |
+| `consola` | `RenderConsola` | Arma el texto del laberinto con la exploración y la leyenda. |
+| `consola` | `SalidaConsola` | Configura UTF-8 y vuelve a ASCII si la consola no admite Unicode. |
+| `consola` | `PruebaTema` | Prueba que ambos temas conservan filas, columnas, paredes y pasillos en todos los mapas válidos. |
+| `gui` | `MainSwing` | Punto de entrada de la GUI. |
+| `gui` | `VentanaLaberinto` | Ventana principal: carga, ejecución en `SwingWorker`, animación y resultados. |
+| `gui` | `PanelLaberinto`, `RenderLaberinto` | Dibujo del laberinto (región visible) y de sus celdas. |
+| `gui` | `PanelEjemplos` | Lista lateral de mapas válidos e inválidos. |
+| `gui` | `PanelResultados`, `TarjetaResultado`, `VistaComparar`, `MiniLaberinto` | Tarjetas por algoritmo y vista de comparación con miniaturas. |
+| `gui` | `Animador`, `EstadoVista` | Avance paso a paso con `javax.swing.Timer` y estado a pintar. |
+| `gui` | `Tema`, `BotonEstilo`, `Insignia`, `Leyenda`, `Formato` | Estilo visual, componentes auxiliares y textos compartidos. |
 
 ## Compilación y ejecución
 
-### Con Apache NetBeans IDE
+Todos los comandos se ejecutan desde la raíz del repositorio, para que el programa encuentre la carpeta `MapaLaberintos`. Se compila en una carpeta temporal para no dejar archivos `.class` en el repositorio.
 
-Se conservan las instrucciones originales:
-
-1. Abrir el proyecto `LaberintoProyectoFundamentosIII`.
-2. Verificar que los archivos `.txt` estén en el directorio correspondiente.
-3. Ejecutar **Clean and Build** para compilar todas las clases.
-4. Ejecutar la clase principal `LaberintoProyectoFundamentosIII`.
-
-> **Nota: pendiente de verificar.** En el repositorio actual no se observa la configuración de proyecto de NetBeans necesaria para confirmar estos pasos. La selección de archivos del programa busca `.txt` en el directorio de trabajo (`.`), mientras que los mapas incluidos están en `MapaLaberintos/`.
-
-### Desde consola o terminal
-
-Se conservan los pasos y comandos originales:
-
-1. Posicionarse en la carpeta `src` del proyecto.
-2. Compilar las clases del paquete:
-
-   ```powershell
-   javac -d build laberintoproyectofundamentosiii/*.java
-   ```
-
-3. Ejecutar la clase principal:
-
-   ```powershell
-   java -cp build laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII
-   ```
-
-> **Nota: pendiente de verificar.** Los archivos `.java` del repositorio están repartidos entre `LaberintoProyectoFundamentosIII/src` y `Clases/src`, y no se observa la carpeta `src/laberintoproyectofundamentosiii` que requieren los comandos anteriores. Además, al ejecutar el programa, los mapas deben estar en el directorio de trabajo para aparecer en el selector.
-
-Para la **estructura actual del repositorio**, esta secuencia de PowerShell sí compila las seis clases y permite seleccionar los mapas incluidos. Se ejecuta desde la raíz del repositorio:
+### PowerShell (Windows)
 
 ```powershell
-New-Item -ItemType Directory -Path build -Force | Out-Null
-javac -d build (Get-ChildItem Clases/src/*.java).FullName LaberintoProyectoFundamentosIII/src/LaberintoProyectoFundamentosIII.java
-Set-Location MapaLaberintos
-java -cp ../build laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII
+$out = "$env:TEMP\laberinto"
+javac -encoding UTF-8 -d $out (Get-ChildItem -Recurse src -Filter *.java).FullName
+
+# Consola (con --unicode se omite la pregunta del tema)
+chcp 65001
+java -cp $out laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII --unicode
+
+# Interfaz gráfica
+java -cp $out frontend.gui.MainSwing
+
+# Prueba de los temas de consola
+java -cp $out frontend.consola.PruebaTema
 ```
 
-En el menú, elige `1` para listar los mapas, selecciona su número y usa `6` para salir. La carga de `laberinto6.txt` muestra las coordenadas `Entrada borde: (1,0) | Salida borde: (3,4)`.
+### Linux y macOS
 
-## Formato de entrada y símbolos
+```bash
+out=/tmp/laberinto
+javac -encoding UTF-8 -d "$out" $(find src -name '*.java')
 
-Los laberintos se almacenan en archivos de texto plano `.txt`. Cada fila de caracteres representa una fila de la cuadrícula. El lector actual comprueba que el archivo no esté vacío, que todas las filas tengan la misma longitud y que solo contengan los caracteres de la siguiente tabla.
+java -cp "$out" laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII --unicode
+java -cp "$out" frontend.gui.MainSwing
+java -cp "$out" frontend.consola.PruebaTema
+```
 
-| Símbolo | Significado |
+Sin `--unicode`, el menú pregunta el tema al iniciar: ENTER o `1` para ASCII, `2` para Unicode.
+
+## Formato de entrada
+
+Los laberintos son archivos de texto plano. Cada renglón es una fila de la cuadrícula y cada carácter es una celda.
+
+| Carácter | Significado |
 | --- | --- |
-| `+`, `-`, `\|` | Paredes o bordes que delimitan el laberinto; no son transitables. |
-| ` ` (espacio) | Celda o pasillo transitable. En un borde válido puede funcionar como entrada o salida si no hay marcas explícitas. |
-| `E` | Entrada explícita, si se utiliza. |
-| `S` | Salida o meta explícita, si se utiliza. |
-| `#` | Marca para mostrar el camino solución sobre el mapa; el lector también la acepta como celda transitable. |
+| `+`, `-`, `\|` | Pared; no transitable. |
+| ` ` (espacio) | Pasillo transitable. |
+| `#` | Transitable con costo 1, igual que el espacio. |
+| `E` | Entrada explícita. |
+| `S` | Salida explícita. |
 
-Para indicar los extremos hay dos modalidades: usar exactamente una `E` y una `S`, o no usar ninguna de esas marcas y dejar exactamente dos celdas transitables en el perímetro. En la segunda modalidad, el lector toma la primera abertura como entrada y la segunda como salida al recorrer el mapa por filas. Las coordenadas mostradas comienzan en `(0,0)`.
+### Reglas de lectura y validación
 
-Ejemplo original: `MapaLaberintos/laberinto6.txt`. Los espacios al final de la cuarta fila son parte del mapa y deben conservarse al copiarlo.
+- El archivo se lee en UTF-8; se tolera un BOM inicial y se ignoran los renglones vacíos al final.
+- Todos los renglones deben tener la misma longitud; un renglón vacío intermedio es inválido.
+- Cualquier otro carácter, incluida la tabulación, es inválido.
+- Los espacios al final de un renglón forman parte del mapa y deben conservarse.
+
+### Reglas de entrada y salida
+
+- Si se usan marcas, debe haber exactamente una `E` y una `S`.
+- Si no hay marcas, debe haber exactamente dos posiciones transitables en el borde. Recorriendo el mapa por filas, la primera es la entrada y la segunda la salida.
+- Si el mapa no cumple las reglas, la carga se rechaza con el motivo y se conserva el laberinto anterior.
+- Las coordenadas se muestran como `(fila,columna)` y comienzan en `(0,0)`.
+
+### Ejemplo
+
+`MapaLaberintos/laberinto6.txt` (la cuarta fila termina con un espacio):
 
 ```text
 +-+-+
@@ -139,62 +169,136 @@ Ejemplo original: `MapaLaberintos/laberinto6.txt`. Los espacios al final de la c
 +-+-+
 ```
 
-En este mapa se construyen **9 vértices**, con inicio **(1,0)** y meta **(3,4)**, según el README original. Al cargar archivos, la descripción original indica que se listan los disponibles, se construye el grafo de celdas transitables y se identifican la entrada y la meta. La carga actual solo identifica y muestra los extremos; la construcción del grafo no se llama desde el menú.
+Se construyen 9 vértices, con entrada `(1,0)` y salida `(3,4)`. Al cargarlo, el programa muestra `Entrada borde: (1,0) | Salida borde: (3,4)`.
 
 ## Menú principal
 
-| Opción | Función descrita en el README original |
+| Opción | Función |
 | --- | --- |
-| 1. Cargar laberinto | Lista los archivos disponibles para elegir uno, construye el grafo y muestra el total de vértices, el inicio y la meta. |
-| 2. Resolver con DFS | Ejecuta búsqueda en profundidad y explora vecinos en el orden arriba, derecha, abajo, izquierda. |
-| 3. Resolver con BFS | Ejecuta búsqueda en anchura y explora vecinos en el orden arriba, derecha, abajo, izquierda. |
-| 4. Resolver con Dijkstra | Halla el camino de menor costo y muestra vértices visitados, si hay solución, longitud en movimientos y cantidad de vértices del camino final. |
-| 5. Mostrar las tres soluciones | Muestra los resultados y el mapa resuelto con `#` para DFS, BFS y Dijkstra. |
+| 1. Cargar laberinto | Pide la ruta de un `.txt`; con ENTER lista los mapas de `MapaLaberintos` en orden natural (0 cancela). Valida el mapa, construye el grafo y muestra la entrada y la salida. Si falla, muestra el motivo y conserva el laberinto anterior. |
+| 2. Resolver con DFS | Anima la exploración y muestra el resultado final. |
+| 3. Resolver con BFS | Igual que la opción 2, con BFS. |
+| 4. Resolver con Dijkstra | Igual que la opción 2, con Dijkstra (`caminoMasCorto`). |
+| 5. Mostrar las tres soluciones | Muestra las tres soluciones seguidas, sin animación, reutilizando los resultados ya calculados para el laberinto actual. |
 | 6. Salir | Cierra el programa. |
 
-> **Nota: pendiente de implementar en el menú.** Las opciones 2 a 5 actualmente imprimen mensajes o estados, sin ejecutar los algoritmos ni mostrar mapas resueltos. La opción 1 lee y valida el mapa, pero no construye el grafo ni muestra su total de vértices.
+En las opciones 2 a 4 se elige el modo de avance:
 
-## Representación del grafo y recorridos
+| Entrada | Modo |
+| --- | --- |
+| ENTER | Paso a paso; ENTER avanza y `f` salta al final. |
+| `0` a `5000` | Avance automático con esa pausa en milisegundos. |
+| `f` | Muestra directamente el resultado final. |
 
-**Alternativa de adyacencia.** Cada celda transitable se modela como un `Vertice` identificado por su clave o posición. `Grafo` conecta las celdas transitables contiguas mediante objetos `Arcos` en listas de adyacencia, en lugar de emplear una matriz de adyacencia densa. Los arcos que crea `construirDesdeMapa` tienen peso 1.
+El resultado final incluye el mapa con el camino, la leyenda, el número de vértices visitados, la longitud en movimientos (o el aviso de que no existe camino) y el tiempo.
 
-**Orden de DFS y BFS descrito originalmente.** Los vecinos se exploran arriba, derecha, abajo e izquierda; en DFS se cuida el orden en que se apilan.
+## Símbolos de presentación
 
-> **Nota: pendiente de verificar.** No hay implementaciones de DFS ni BFS en el código actual, así que no se puede afirmar su orden real de exploración. `Grafo.construirDesdeMapa` genera los arcos en el orden **arriba, abajo, izquierda y derecha**, distinto del orden anunciado en el README.
+Los temas solo cambian lo que se imprime; el archivo y el grafo no se modifican y cada posición sigue ocupando un carácter.
 
-**Desempate de Dijkstra.** Cuando dos o más vértices no visitados tienen la misma distancia mínima actual, se compara el texto de sus claves en orden alfabético; gana la clave que aparece primero. El criterio es repetible y no depende del orden interno de la `Hashtable`:
+| Elemento | ASCII (por defecto) | Unicode |
+| --- | --- | --- |
+| Paredes | `+ - \|` | `─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼` (cada `+` según sus vecinos) |
+| Transitable | espacio | espacio |
+| Entrada | `E` | `▶` |
+| Salida | `S` | `◆` |
+| Visitado | `.` | `·` |
+| Vértice actual | `@` | `◉` |
+| Camino final | `*` | `●` |
 
-```java
-claveCandidato.compareTo(mejorCandidato.getClave()) < 0
-```
+Si la consola no usa UTF-8, `SalidaConsola` avisa y vuelve al tema ASCII.
 
-Este criterio aparece en `CaminoMasCorto.obtenerSiguienteVerticeMenorDistancia`.
+## Representación del grafo y algoritmos
 
-## Uso de IA
+### Grafo
 
-El README anterior declaraba **Gemini (Google)** como apoyo en la revisión y depuración de la lógica de `CaminoMasCorto`, el manejo de colecciones y casos borde con valores nulos, la resolución de dudas generales del proyecto, la implementación del menú usando `list.dir` o similar, y la redacción y estructura de este README. Esa descripción histórica se conserva; la declaración por integrante para esta entrega es la siguiente:
+| Aspecto | Implementación |
+| --- | --- |
+| Vértices | Una por celda transitable (espacio, `#`, `E`, `S`). |
+| Identificador | `id = fila * columnas + columna`. |
+| Adyacencia | `Hashtable<Integer, List<Arcos>>` con listas ligadas (`LinkedList`), en lugar de una matriz densa. |
+| Arcos | Dirigidos, entre celdas transitables contiguas; todos con peso 1, incluido `#`. |
+| Orden de vecinos | Arriba, derecha, abajo, izquierda. |
+
+### Algoritmos
+
+| Algoritmo | Método | Funcionamiento |
+| --- | --- | --- |
+| DFS | `Grafo.DFS()` | Pila (`ArrayDeque`) de pares (vértice, padre). Apila los vecinos en orden inverso para explorar primero el de arriba. Un vértice se marca y se registra al sacarlo de la pila; su predecesor es el padre que lo apiló. Devuelve los visitados; el camino se lee con `getUltimoCaminoDFS()`. |
+| BFS | `Grafo.BFS()` | Cola (`ArrayDeque`) en el orden de vecinos. Marca al encolar y registra al desencolar. Devuelve los visitados; el camino se lee con `getUltimoCaminoBFS()`. |
+| Dijkstra | `Grafo.caminoMasCorto()` | `PriorityQueue` ordenada por (distancia, id menor); descarta entradas obsoletas y registra cada vértice al extraerlo. Devuelve el camino; los visitados se leen con `getUltimosVisitadosDijkstra()`. |
+
+Reglas comunes:
+
+- Cada ejecución reinicia el estado del algoritmo.
+- Los visitados se registran en orden de procesamiento y sin duplicados.
+- La búsqueda termina al procesar la salida o al agotar los vértices alcanzables.
+- El camino se reconstruye con los predecesores, de la entrada a la salida.
+- Si no hay solución, el camino queda vacío y se informa que no existe; nunca se muestra una longitud de 0.
+- La longitud se cuenta en movimientos (vértices del camino menos uno).
+
+Como todos los arcos pesan 1, BFS y Dijkstra encuentran caminos de la misma longitud; DFS puede devolver uno más largo (véase `ciclo_dfs_mas_largo.txt`).
+
+## Tiempos de ejecución
+
+- Se mide con `System.nanoTime()` únicamente la llamada al algoritmo, sin incluir la lectura de getters, la conversión ni el dibujo.
+- La consola lo muestra como `Tiempo: 323600 ns (0.323600 ms)`.
+- La opción 5 y la GUI reutilizan el resultado ya calculado para el laberinto actual, así que muestran el mismo tiempo de esa ejecución.
+- Los valores varían entre ejecuciones por el calentamiento de la JVM; sirven para comparar los algoritmos sobre un mismo mapa.
+
+## Mapas de prueba
+
+### Válidos (`MapaLaberintos/`)
+
+| Archivo | Propósito |
+| --- | --- |
+| `laberinto1.txt` a `laberinto10.txt` | Laberintos de ejemplo de distintos tamaños (`laberinto9.txt` es el más grande, 159 filas). |
+| `con_marcas.txt` | Entrada y salida con `E` y `S`. |
+| `con_numerales.txt` | Pasillos con `#`, transitables con costo 1. |
+| `espacios_finales.txt` | Espacios al final de los renglones que forman parte del mapa. |
+| `no_cuadrado.txt` | Mapa rectangular, no cuadrado. |
+| `ciclo_dfs_mas_largo.txt` | Ciclo en el que DFS encuentra un camino más largo que BFS y Dijkstra. |
+| `sin_solucion_exploracion.txt` | Sin camino entre entrada y salida; se exploran todos los vértices alcanzables. |
+
+### Inválidos (`MapaLaberintos/invalidos/`)
+
+| Archivo | Motivo mostrado |
+| --- | --- |
+| `caracter_invalido.txt` | Carácter inválido `'x'` con su fila y columna. |
+| `dos_e.txt` | Debe haber exactamente una E y una S. |
+| `e_sin_s.txt` | Debe haber exactamente una E y una S. |
+| `perimetro_tres.txt` | Sin E/S debe haber exactamente 2 posiciones transitables en el borde. |
+| `renglon_vacio_interno.txt` | El renglón tiene longitud 0. |
+| `renglones_distintos.txt` | El renglón tiene distinta longitud. |
+| `solo_saltos_de_linea.txt` | El archivo está vacío o solo contiene saltos de línea. |
+| `tabulacion.txt` | Tabulación inválida con su fila y columna. |
+| `utf8_invalido.txt` | El archivo no contiene texto UTF-8 válido. |
+| `vacio.txt` | El archivo está vacío o solo contiene saltos de línea. |
+
+## Extras implementados
+
+| Extra | Descripción |
+| --- | --- |
+| Tiempos de solución | Medición con `System.nanoTime()` de cada algoritmo, en consola y en la GUI. |
+| Caracteres alternativos | Tema Unicode con paredes de caja y símbolos para entrada, salida, visitados, actual y camino. |
+| Interfaz gráfica con Swing | Carga de mapas, animación de la exploración, tarjetas de resultados y vista comparativa de los tres algoritmos, conectada a la base mediante `ServicioBase`. Detalles en [docs/FRONTEND.md](docs/FRONTEND.md). |
+| README | Documentación completa del proyecto. |
+
+## Responsabilidades
+
+| Integrante | Responsabilidades |
+| --- | --- |
+| Mario Ramírez (MarioJavaScript) | Reestructuración del repositorio, correcciones de la base (lectura y validación, grafo, Dijkstra, DFS), despliegue en consola, tiempos de ejecución y extras (caracteres alternativos, GUI Swing y README). |
+| jorgeluis1077 | Implementación de DFS y BFS en `Grafo`, conexión de DFS, BFS y camino más corto en el menú principal, y mapas `laberinto6.txt` a `laberinto10.txt`. |
+| Sergipato (sergiocarrilli42-debug) | Menú principal y carga de archivos desde una lista, clases `Grafo`, `Vertice`, `Vertices` y `Arcos`, primera implementación de Dijkstra, mapas `laberinto1.txt` a `laberinto5.txt` y README inicial. |
+
+## Declaración de uso de IA
 
 | Integrante | Empresa | Modelo | Uso |
 | --- | --- | --- | --- |
-| Mario Ramírez | OpenAI | ChatGPT (Astra 6.2) | Generar código de los extras (interfaz gráfica con Swing y caracteres alternativos). |
-| Mario Ramírez | Anthropic | Claude Opus 5.5 | Auditar el código y el estado del repositorio. |
-| jorgeluis1077 | Google | Gemini Hydrogen | Apoyo en el desarrollo del proyecto. |
-| sergiocarrilli42-debug | Google | Gemini Hydrogen | Apoyo en el desarrollo del proyecto. |
+| Mario Ramírez | OpenAI | ChatGPT (Astra 6.2) | Generar código. |
+| Mario Ramírez | Anthropic | Claude Opus 5.5 | Auditar el código. |
+| jorgeluis1077 | Google | Gemini Hydrogen | Apoyo en el desarrollo. |
+| sergiocarrilli42-debug | Google | Gemini Hydrogen | Apoyo en el desarrollo. |
 
-El formato anterior contemplaba declarar **«No se utilizó IA»** en la fila correspondiente y **«No aplica»** en Empresa y Modelo. Las cuatro declaraciones concretas anteriores sustituyen esos campos abiertos.
-
-## Estado del proyecto
-
-La inspección del código disponible muestra estos puntos pendientes respecto de las funciones descritas arriba y de los requisitos indicados para la entrega:
-
-| Punto | Estado observado |
-| --- | --- |
-| Carga e identificación de extremos | El menú lee y valida archivos `.txt` del directorio de trabajo y muestra entrada y salida. |
-| Construcción del grafo durante la carga | `Grafo.construirDesdeMapa` existe, pero el menú no lo invoca ni muestra el total de vértices. |
-| DFS y BFS | No aparecen implementaciones de estos algoritmos en los archivos Java actuales. |
-| Dijkstra desde el menú | `CaminoMasCorto.caminoMasCorto` existe, pero la opción 4 no lo invoca ni presenta sus estadísticas. |
-| Visualización de soluciones | La opción 5 solo imprime los indicadores de las opciones elegidas; no presenta caminos ni mapas marcados con `#`. |
-| Caracteres alternativos | El lector y el grafo solo reconocen `+`, `-`, `|`, espacio, `#`, `E` y `S`; los caracteres alternativos asignados como punto extra aún no aparecen. |
-| Interfaz gráfica con Swing | No hay clases ni imports de Swing en el código actual; el frontend disponible es el menú de consola. |
-| Tiempos de solución | No hay medición ni presentación de tiempos de ejecución de los algoritmos. |
-| Pasos de compilación documentados | Queda por confirmar o adaptar la estructura necesaria para NetBeans y los comandos originales de consola. |
+El README anterior detallaba el apoyo de Gemini (Google): revisión y depuración de la lógica de `CaminoMasCorto` (la primera implementación de Dijkstra), manejo de colecciones y casos borde con valores nulos, resolución de dudas generales del proyecto, implementación del menú usando `list.dir` o similar, y redacción y estructura del README.

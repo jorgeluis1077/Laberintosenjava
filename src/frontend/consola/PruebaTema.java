@@ -3,7 +3,7 @@ package frontend.consola;
 import frontend.modelo.DatosLaberinto;
 import frontend.modelo.ErrorCargaException;
 import frontend.modelo.ResultadoVista;
-import frontend.modelo.ServicioDemo;
+import frontend.modelo.ServicioBase;
 import frontend.modelo.ServicioLaberinto;
 import java.nio.file.Path;
 import java.util.List;
@@ -22,7 +22,7 @@ public final class PruebaTema {
 
     public static void main(String[] args) {
         SalidaConsola.configurar(TemaConsola.ASCII);
-        ServicioLaberinto servicio = new ServicioDemo();
+        ServicioLaberinto servicio = new ServicioBase();
         List<Path> archivos = servicio.listarEjemplos();
         if (archivos.isEmpty()) {
             System.out.println("FALLO: no se encontraron ejemplos (ejemplos/ o MapaLaberintos/).");

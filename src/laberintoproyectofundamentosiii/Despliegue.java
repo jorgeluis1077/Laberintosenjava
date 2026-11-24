@@ -32,7 +32,7 @@ public final class Despliegue {
         this.tiempoNanos = tiempoNanos;
     }
 
-    static DatosLaberinto datosDelMapa(String mapa, Grafo grafo) {
+    public static DatosLaberinto datosDelMapa(String mapa, Grafo grafo) {
         String[] filas = mapa.split("\n");
         char[][] celdas = new char[filas.length][];
         for (int i = 0; i < filas.length; i++) {
@@ -87,6 +87,12 @@ public final class Despliegue {
     }
 
     private ResultadoVista convertirResultado(List<Vertice> visitados) {
+        return resultadoVista(algoritmo, visitados, camino, tiempoNanos);
+    }
+
+    /** Unica conversion de vertices de la base a celdas del frontend (consola y GUI). */
+    public static ResultadoVista resultadoVista(String algoritmo, List<Vertice> visitados,
+                                                List<Vertice> camino, long tiempoNanos) {
         return new ResultadoVista(algoritmo, aCeldas(visitados), aCeldas(camino), !camino.isEmpty(), tiempoNanos);
     }
 

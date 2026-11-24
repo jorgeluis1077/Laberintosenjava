@@ -32,4 +32,8 @@ public record DatosLaberinto(String nombreArchivo, char[][] mapa,
     public Celda salida() {
         return new Celda(salidaFila, salidaCol);
     }
+
+    public DatosLaberinto conNombre(String nombre) {
+        return new DatosLaberinto(nombre, mapa, entradaFila, entradaCol, salidaFila, salidaCol);
+    }
 }

@@ -6,8 +6,7 @@ import java.util.Optional;
 
 /**
  * Unico punto de contacto entre la GUI y la logica del proyecto.
- * La GUI solo conoce esta interfaz; un adaptador real la implementara
- * llamando a Grafo, Vertice, etc.
+ * La GUI solo conoce esta interfaz; ServicioBase la implementa con la base real.
  */
 public interface ServicioLaberinto {
 
