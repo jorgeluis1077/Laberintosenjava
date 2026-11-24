@@ -2,6 +2,9 @@ package laberintoproyectofundamentosiii;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -315,22 +318,21 @@ public class LaberintoProyectoFundamentosIII {
                 return null;
             }
 
-            Scanner lector = new Scanner(archivo);
-            String texto = "";
-            int totalFilas = 0;
-            while (lector.hasNextLine()) {
-                texto += lector.nextLine() + "\n";
-                totalFilas++;
+            List<String> renglones = new ArrayList<>(Files.readAllLines(archivo.toPath(), StandardCharsets.UTF_8));
+            if (!renglones.isEmpty() && renglones.get(0).startsWith("\uFEFF")) {
+                renglones.set(0, renglones.get(0).substring(1));
             }
-            lector.close();
+            int totalFilas = renglones.size();
+            while (totalFilas > 0 && renglones.get(totalFilas - 1).isEmpty()) {
+                totalFilas--;
+            }
 
             if (totalFilas == 0) {
-                System.out.println("El archivo esta vacio");
+                System.out.println("El archivo esta vacio o solo contiene saltos de linea.");
                 return null;
             }
 
-            String[] renglones = texto.split("\n");
-            int totalColumnas = renglones[0].length();
+            int totalColumnas = renglones.get(0).length();
             if (totalColumnas == 0) {
                 System.out.println("Los renglones no pueden tener longitud 0");
                 return null;
@@ -344,8 +346,7 @@ public class LaberintoProyectoFundamentosIII {
             int columnaSalida = -1;
 
             for (int fila = 0; fila < totalFilas; fila++) {
-                String lineaActual = renglones[fila].replace("\r", "");
-                renglones[fila] = lineaActual;
+                String lineaActual = renglones.get(fila);
 
                 if (lineaActual.length() != totalColumnas) {
                     System.out.println("El renglon " + (fila + 1) + " tiene distinta longitud.");
@@ -385,10 +386,11 @@ public class LaberintoProyectoFundamentosIII {
                 int[] columnaBorde = new int[2];
 
                 for (int fila = 0; fila < totalFilas; fila++) {
+                    String renglon = renglones.get(fila);
                     for (int col = 0; col < totalColumnas; col++) {
                         boolean estaEnBorde = (fila == 0 || fila == totalFilas - 1
                                 || col == 0 || col == totalColumnas - 1);
-                        char caracter = renglones[fila].charAt(col);
+                        char caracter = renglon.charAt(col);
                         boolean esTransitable = (caracter == ' ' || caracter == '#'
                                 || caracter == 'E' || caracter == 'S');
 
@@ -410,7 +412,7 @@ public class LaberintoProyectoFundamentosIII {
                         + ") | Salida borde: (" + filaBorde[1] + "," + columnaBorde[1] + ")");
             }
 
-            return texto;
+            return String.join("\n", renglones.subList(0, totalFilas)) + "\n";
         } catch (Exception e) {
             System.out.println("Error al cargar: " + e.getMessage());
             return null;
