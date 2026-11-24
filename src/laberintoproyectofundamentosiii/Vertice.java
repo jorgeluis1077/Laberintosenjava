@@ -2,17 +2,16 @@
 package laberintoproyectofundamentosiii;
 
 public class Vertice {
-    
+
     private int fila;
     private int columna;
-    private String clave;
+    private int id = -1; // lo asigna Grafo: fila * columnas + columna
     private boolean entrada;
     private boolean salida;
-    
+
     public Vertice(int fila, int columna, boolean entrada, boolean salida){
         this.fila = fila;
         this.columna = columna;
-        this.clave = fila + "," + columna;
         this.entrada = entrada;
         this.salida = salida;
     }
@@ -22,8 +21,11 @@ public class Vertice {
     public int getColumna(){
         return columna;
     }
-    public String getClave(){
-        return clave;
+    public int getId(){
+        return id;
+    }
+    void setId(int id){
+        this.id = id;
     }
     public boolean esEntrada(){
         return entrada;

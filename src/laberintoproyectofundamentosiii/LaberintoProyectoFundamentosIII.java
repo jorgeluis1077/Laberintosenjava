@@ -139,7 +139,7 @@ public class LaberintoProyectoFundamentosIII {
         int filas = renglones.length;
         int columnas = renglones[0].length();
 
-        Grafo grafo = new Grafo();
+        Grafo grafo = new Grafo(columnas);
         Vertice[][] matrizVertices = new Vertice[filas][columnas];
 
         boolean tieneEYS = false;

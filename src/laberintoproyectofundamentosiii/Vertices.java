@@ -5,24 +5,26 @@ import java.util.Collection;
 import java.util.Hashtable;
 
 public class Vertices {
-    private Hashtable<String, Vertice> tablaVertices;
-    
-    public Vertices(){
-        this.tablaVertices = new Hashtable<String, Vertice>();
+    private Hashtable<Integer, Vertice> tablaVertices;
+    private int columnas;
+
+    public Vertices(int columnas){
+        this.tablaVertices = new Hashtable<Integer, Vertice>();
+        this.columnas = columnas;
     }
     public void agregar(Vertice vertice){
         if(vertice != null){
-            tablaVertices.put(vertice.getClave(), vertice);
+            tablaVertices.put(vertice.getId(), vertice);
         }
     }
-    public Vertice obtener(String clave){
-        return tablaVertices.get(clave);
+    public Vertice obtener(int id){
+        return tablaVertices.get(id);
     }
     public Vertice obtenerPorCoordenada(int fila, int columna){
-        return tablaVertices.get(fila + "," + columna);
+        return tablaVertices.get(fila * columnas + columna);
     }
-    public boolean existe(String clave){
-        return tablaVertices.containsKey(clave);
+    public boolean existe(int id){
+        return tablaVertices.containsKey(id);
     }
     public Collection<Vertice> todos(){
         return tablaVertices.values();

@@ -7,8 +7,9 @@ import java.util.List;
 
 public class Grafo {
 
+    private int columnas;
     private Vertices vertices;
-    private Hashtable<String, List<Arcos>> adyacencia;
+    private Hashtable<Integer, List<Arcos>> adyacencia;
     private Vertice inicio;
     private Vertice meta;
 
@@ -20,22 +21,30 @@ public class Grafo {
     private List<Vertice> ultimoCaminoBFS;
     private boolean ultimaSolucionBFS;
 
-    public Grafo() {
-        this.vertices = new Vertices();
-        this.adyacencia = new Hashtable<String, List<Arcos>>();
+    public Grafo(int columnas) {
+        this.columnas = columnas;
+        this.vertices = new Vertices(columnas);
+        this.adyacencia = new Hashtable<Integer, List<Arcos>>();
         this.ultimoCaminoDFS = new ArrayList<Vertice>();
         this.ultimaSolucionDFS = false;
         this.ultimoCaminoBFS = new ArrayList<Vertice>();
         this.ultimaSolucionBFS = false;
     }
 
+    // Asigna el id unico del vertice: fila * columnas + columna
+    private int asignarId(Vertice vertice) {
+        vertice.setId(vertice.getFila() * columnas + vertice.getColumna());
+        return vertice.getId();
+    }
+
     public void agregarVertice(Vertice vertice) {
-        if (vertice == null || vertice.getClave() == null) {
+        if (vertice == null) {
             return;
         }
+        int id = asignarId(vertice);
         vertices.agregar(vertice);
-        if (!adyacencia.containsKey(vertice.getClave())) {
-            adyacencia.put(vertice.getClave(), new ArrayList<Arcos>());
+        if (!adyacencia.containsKey(id)) {
+            adyacencia.put(id, new ArrayList<Arcos>());
         }
         if (vertice.esEntrada() && this.inicio == null) {
             this.inicio = vertice;
@@ -46,29 +55,23 @@ public class Grafo {
     }
 
     public void agregarArco(Vertice origen, Vertice destino, int peso) {
-        if (origen == null || destino == null || origen.getClave() == null) {
+        if (origen == null || destino == null) {
             return;
         }
-        if (!vertices.existe(origen.getClave())) {
+        if (!vertices.existe(asignarId(origen))) {
             agregarVertice(origen);
         }
-        if (destino.getClave() != null && !vertices.existe(destino.getClave())) {
+        if (!vertices.existe(asignarId(destino))) {
             agregarVertice(destino);
         }
-
-        List<Arcos> lista = adyacencia.get(origen.getClave());
-        if (lista == null) {
-            lista = new ArrayList<Arcos>();
-            adyacencia.put(origen.getClave(), lista);
-        }
-        lista.add(new Arcos(origen, destino, peso));
+        adyacencia.get(origen.getId()).add(new Arcos(origen, destino, peso));
     }
 
     public List<Arcos> obtenerArcosDe(Vertice vertice) {
-        if (vertice == null || vertice.getClave() == null) {
+        if (vertice == null) {
             return new ArrayList<Arcos>();
         }
-        List<Arcos> lista = adyacencia.get(vertice.getClave());
+        List<Arcos> lista = adyacencia.get(vertice.getId());
         return (lista != null) ? lista : new ArrayList<Arcos>();
     }
 
@@ -105,7 +108,7 @@ public class Grafo {
         this.ultimaSolucionDFS = false;
 
         if (this.vertices == null || origen == null || destino == null
-                || origen.getClave() == null || destino.getClave() == null) {
+               ) {
             System.out.println("DFS: Uno o ambos vértices no existen en el grafo.");
             return visitados;
         }
@@ -115,19 +118,19 @@ public class Grafo {
             return visitados;
         }
 
-        Hashtable<String, Boolean> visitadoMapa = new Hashtable<String, Boolean>();
-        Hashtable<String, Vertice> predecesores = new Hashtable<String, Vertice>();
+        Hashtable<Integer, Boolean> visitadoMapa = new Hashtable<Integer, Boolean>();
+        Hashtable<Integer, Vertice> predecesores = new Hashtable<Integer, Vertice>();
 
         for (Vertice actual : todosLosVertices) {
-            if (actual != null && actual.getClave() != null) {
-                visitadoMapa.put(actual.getClave(), false);
+            if (actual != null) {
+                visitadoMapa.put(actual.getId(), false);
             }
         }
 
-        String claveOrigen = origen.getClave();
-        String claveDestino = destino.getClave();
+        int idOrigen = origen.getId();
+        int idDestino = destino.getId();
 
-        if (!visitadoMapa.containsKey(claveOrigen) || !visitadoMapa.containsKey(claveDestino)) {
+        if (!visitadoMapa.containsKey(idOrigen) || !visitadoMapa.containsKey(idDestino)) {
             System.out.println("DFS: Uno o ambos vértices no existen en el grafo.");
             return visitados;
         }
@@ -140,21 +143,21 @@ public class Grafo {
 
         while (!pilaDFS.isEmpty()) {
             Vertice verticeActual = pilaDFS.remove(pilaDFS.size() - 1);
-            if (verticeActual == null || verticeActual.getClave() == null) {
+            if (verticeActual == null) {
                 continue;
             }
 
-            String claveActual = verticeActual.getClave();
-            Boolean yaVisitado = visitadoMapa.get(claveActual);
+            int idActual = verticeActual.getId();
+            Boolean yaVisitado = visitadoMapa.get(idActual);
             if (yaVisitado != null && yaVisitado) {
                 continue;
             }
 
-            visitadoMapa.put(claveActual, true);
+            visitadoMapa.put(idActual, true);
             visitados.add(verticeActual);
             System.out.print(verticeActual + " ");
 
-            if (claveActual.equals(claveDestino)) {
+            if (idActual == idDestino) {
                 System.out.println("\nDFS: Se ha alcanzado el vértice final.");
                 this.ultimaSolucionDFS = true;
                 this.ultimoCaminoDFS = reconstruirCamino(origen, destino, predecesores);
@@ -173,19 +176,19 @@ public class Grafo {
                 }
 
                 Vertice vecino = arco.getDestino();
-                if (vecino == null || vecino.getClave() == null) {
+                if (vecino == null) {
                     continue;
                 }
 
-                String claveVecino = vecino.getClave();
-                if (!visitadoMapa.containsKey(claveVecino)) {
+                int idVecino = vecino.getId();
+                if (!visitadoMapa.containsKey(idVecino)) {
                     continue;
                 }
 
-                Boolean vecinoVisitado = visitadoMapa.get(claveVecino);
+                Boolean vecinoVisitado = visitadoMapa.get(idVecino);
                 if (vecinoVisitado == null || !vecinoVisitado) {
-                    if (!predecesores.containsKey(claveVecino)) {
-                        predecesores.put(claveVecino, verticeActual);
+                    if (!predecesores.containsKey(idVecino)) {
+                        predecesores.put(idVecino, verticeActual);
                     }
                     pilaDFS.add(vecino);
                 }
@@ -218,7 +221,7 @@ public class Grafo {
         this.ultimaSolucionBFS = false;
 
         if (this.vertices == null || origen == null || destino == null
-                || origen.getClave() == null || destino.getClave() == null) {
+               ) {
             System.out.println("BFS: Uno o ambos vértices no existen en el grafo.");
             return visitados;
         }
@@ -228,19 +231,19 @@ public class Grafo {
             return visitados;
         }
 
-        Hashtable<String, Boolean> visitadoMapa = new Hashtable<String, Boolean>();
-        Hashtable<String, Vertice> predecesores = new Hashtable<String, Vertice>();
+        Hashtable<Integer, Boolean> visitadoMapa = new Hashtable<Integer, Boolean>();
+        Hashtable<Integer, Vertice> predecesores = new Hashtable<Integer, Vertice>();
 
         for (Vertice actual : todosLosVertices) {
-            if (actual != null && actual.getClave() != null) {
-                visitadoMapa.put(actual.getClave(), false);
+            if (actual != null) {
+                visitadoMapa.put(actual.getId(), false);
             }
         }
 
-        String claveOrigen = origen.getClave();
-        String claveDestino = destino.getClave();
+        int idOrigen = origen.getId();
+        int idDestino = destino.getId();
 
-        if (!visitadoMapa.containsKey(claveOrigen) || !visitadoMapa.containsKey(claveDestino)) {
+        if (!visitadoMapa.containsKey(idOrigen) || !visitadoMapa.containsKey(idDestino)) {
             System.out.println("BFS: Uno o ambos vértices no existen en el grafo.");
             return visitados;
         }
@@ -249,20 +252,20 @@ public class Grafo {
 
         // Lista usada como cola (FIFO): se agrega al final y se saca del índice 0
         List<Vertice> colaBFS = new ArrayList<Vertice>();
-        visitadoMapa.put(claveOrigen, true);
+        visitadoMapa.put(idOrigen, true);
         colaBFS.add(origen);
 
         while (!colaBFS.isEmpty()) {
             Vertice verticeActual = colaBFS.remove(0);
-            if (verticeActual == null || verticeActual.getClave() == null) {
+            if (verticeActual == null) {
                 continue;
             }
 
-            String claveActual = verticeActual.getClave();
+            int idActual = verticeActual.getId();
             visitados.add(verticeActual);
             System.out.print(verticeActual + " ");
 
-            if (claveActual.equals(claveDestino)) {
+            if (idActual == idDestino) {
                 System.out.println("\nBFS: Se ha alcanzado el vértice final.");
                 this.ultimaSolucionBFS = true;
                 this.ultimoCaminoBFS = reconstruirCamino(origen, destino, predecesores);
@@ -281,20 +284,20 @@ public class Grafo {
                 }
 
                 Vertice vecino = arco.getDestino();
-                if (vecino == null || vecino.getClave() == null) {
+                if (vecino == null) {
                     continue;
                 }
 
-                String claveVecino = vecino.getClave();
-                if (!visitadoMapa.containsKey(claveVecino)) {
+                int idVecino = vecino.getId();
+                if (!visitadoMapa.containsKey(idVecino)) {
                     continue;
                 }
 
-                Boolean yaVisitado = visitadoMapa.get(claveVecino);
+                Boolean yaVisitado = visitadoMapa.get(idVecino);
                 if (yaVisitado == null || !yaVisitado) {
-                    visitadoMapa.put(claveVecino, true);
-                    if (!predecesores.containsKey(claveVecino)) {
-                        predecesores.put(claveVecino, verticeActual);
+                    visitadoMapa.put(idVecino, true);
+                    if (!predecesores.containsKey(idVecino)) {
+                        predecesores.put(idVecino, verticeActual);
                     }
                     colaBFS.add(vecino);
                 }
@@ -325,7 +328,7 @@ public class Grafo {
         List<Vertice> rutaMasCorta = new ArrayList<Vertice>();
 
         if (this.vertices == null || origen == null || destino == null
-                || origen.getClave() == null || destino.getClave() == null) {
+               ) {
             return rutaMasCorta;
         }
 
@@ -335,40 +338,40 @@ public class Grafo {
         }
 
         int infinito = Integer.MAX_VALUE;
-        Hashtable<String, Integer> distancias = new Hashtable<String, Integer>();
-        Hashtable<String, Vertice> predecesores = new Hashtable<String, Vertice>();
-        Hashtable<String, Boolean> visitadoMapa = new Hashtable<String, Boolean>();
+        Hashtable<Integer, Integer> distancias = new Hashtable<Integer, Integer>();
+        Hashtable<Integer, Vertice> predecesores = new Hashtable<Integer, Vertice>();
+        Hashtable<Integer, Boolean> visitadoMapa = new Hashtable<Integer, Boolean>();
 
         for (Vertice actual : todosLosVertices) {
-            if (actual != null && actual.getClave() != null) {
-                distancias.put(actual.getClave(), infinito);
-                visitadoMapa.put(actual.getClave(), false);
+            if (actual != null) {
+                distancias.put(actual.getId(), infinito);
+                visitadoMapa.put(actual.getId(), false);
             }
         }
 
-        String claveOrigen = origen.getClave();
-        String claveDestino = destino.getClave();
+        int idOrigen = origen.getId();
+        int idDestino = destino.getId();
 
-        if (!distancias.containsKey(claveOrigen) || !distancias.containsKey(claveDestino)) {
+        if (!distancias.containsKey(idOrigen) || !distancias.containsKey(idDestino)) {
             return rutaMasCorta;
         }
 
-        distancias.put(claveOrigen, 0);
+        distancias.put(idOrigen, 0);
 
         while (true) {
             Vertice actual = null;
             int menorDistancia = infinito;
 
             for (Vertice candidato : todosLosVertices) {
-                if (candidato == null || candidato.getClave() == null) {
+                if (candidato == null) {
                     continue;
                 }
-                String claveCandidato = candidato.getClave();
-                Boolean yaVisitado = visitadoMapa.get(claveCandidato);
+                int idCandidato = candidato.getId();
+                Boolean yaVisitado = visitadoMapa.get(idCandidato);
                 if (yaVisitado != null && yaVisitado) {
                     continue;
                 }
-                Integer distObj = distancias.get(claveCandidato);
+                Integer distObj = distancias.get(idCandidato);
                 if (distObj != null && distObj < menorDistancia) {
                     menorDistancia = distObj;
                     actual = candidato;
@@ -379,10 +382,10 @@ public class Grafo {
                 break;
             }
 
-            String claveActual = actual.getClave();
-            visitadoMapa.put(claveActual, true);
+            int idActual = actual.getId();
+            visitadoMapa.put(idActual, true);
 
-            if (claveActual.equals(claveDestino)) {
+            if (idActual == idDestino) {
                 return reconstruirCamino(origen, destino, predecesores);
             }
 
@@ -393,7 +396,7 @@ public class Grafo {
 
             for (int i = 0; i < arcosSalientes.size(); i++) {
                 Arcos arco = arcosSalientes.get(i);
-                if (arco == null || arco.getDestino() == null || arco.getDestino().getClave() == null) {
+                if (arco == null || arco.getDestino() == null) {
                     continue;
                 }
                 int peso = arco.getPeso();
@@ -401,21 +404,21 @@ public class Grafo {
                     continue;
                 }
 
-                String claveVecino = arco.getDestino().getClave();
-                if (!distancias.containsKey(claveVecino)) {
+                int idVecino = arco.getDestino().getId();
+                if (!distancias.containsKey(idVecino)) {
                     continue;
                 }
 
-                Boolean vecinoVisitado = visitadoMapa.get(claveVecino);
+                Boolean vecinoVisitado = visitadoMapa.get(idVecino);
                 if (vecinoVisitado != null && vecinoVisitado) {
                     continue;
                 }
 
                 int nuevaDistancia = menorDistancia + peso;
-                Integer distVecinoObj = distancias.get(claveVecino);
+                Integer distVecinoObj = distancias.get(idVecino);
                 if (distVecinoObj != null && nuevaDistancia < distVecinoObj) {
-                    distancias.put(claveVecino, nuevaDistancia);
-                    predecesores.put(claveVecino, actual);
+                    distancias.put(idVecino, nuevaDistancia);
+                    predecesores.put(idVecino, actual);
                 }
             }
         }
@@ -424,20 +427,20 @@ public class Grafo {
     }
 
     private List<Vertice> reconstruirCamino(Vertice origen, Vertice destino,
-            Hashtable<String, Vertice> predecesores) {
+            Hashtable<Integer, Vertice> predecesores) {
         List<Vertice> camino = new ArrayList<Vertice>();
         Vertice paso = destino;
 
         while (paso != null) {
             camino.add(paso);
-            String clavePaso = paso.getClave();
-            if (clavePaso == null || clavePaso.equals(origen.getClave())) {
+            int idPaso = paso.getId();
+            if (idPaso == origen.getId()) {
                 break;
             }
-            paso = predecesores.get(clavePaso);
+            paso = predecesores.get(idPaso);
         }
 
-        if (camino.isEmpty() || !camino.get(camino.size() - 1).getClave().equals(origen.getClave())) {
+        if (camino.isEmpty() || camino.get(camino.size() - 1).getId() != origen.getId()) {
             return new ArrayList<Vertice>();
         }
 
