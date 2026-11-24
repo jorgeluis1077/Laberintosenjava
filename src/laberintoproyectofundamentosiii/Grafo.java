@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class Grafo {
 
@@ -21,6 +22,9 @@ public class Grafo {
     private List<Vertice> ultimoCaminoBFS;
     private boolean ultimaSolucionBFS;
 
+    // --- Estado auxiliar de Dijkstra ---
+    private List<Vertice> ultimosVisitadosDijkstra;
+
     public Grafo(int columnas) {
         this.columnas = columnas;
         this.vertices = new Vertices(columnas);
@@ -29,6 +33,7 @@ public class Grafo {
         this.ultimaSolucionDFS = false;
         this.ultimoCaminoBFS = new ArrayList<Vertice>();
         this.ultimaSolucionBFS = false;
+        this.ultimosVisitadosDijkstra = new ArrayList<Vertice>();
     }
 
     // Asigna el id unico del vertice: fila * columnas + columna
@@ -312,104 +317,50 @@ public class Grafo {
     }
 
     public List<Vertice> caminoMasCorto(Vertice origen, Vertice destino) {
-        List<Vertice> rutaMasCorta = new ArrayList<Vertice>();
+        this.ultimosVisitadosDijkstra = new ArrayList<Vertice>();
 
-        if (this.vertices == null || origen == null || destino == null) {
-            return rutaMasCorta;
+        if (this.vertices == null || origen == null || destino == null
+                || !vertices.existe(origen.getId()) || !vertices.existe(destino.getId())) {
+            return new ArrayList<Vertice>();
         }
 
-        Collection<Vertice> todosLosVertices = this.vertices.todos();
-        if (todosLosVertices == null) {
-            return rutaMasCorta;
-        }
-
-        int infinito = Integer.MAX_VALUE;
         Hashtable<Integer, Integer> distancias = new Hashtable<Integer, Integer>();
         Hashtable<Integer, Vertice> predecesores = new Hashtable<Integer, Vertice>();
-        Hashtable<Integer, Boolean> visitadoMapa = new Hashtable<Integer, Boolean>();
 
-        for (Vertice actual : todosLosVertices) {
-            if (actual != null) {
-                distancias.put(actual.getId(), infinito);
-                visitadoMapa.put(actual.getId(), false);
-            }
-        }
+        // Entradas {distancia, id}: sale primero la menor distancia y, en empate, el menor id
+        PriorityQueue<int[]> cola = new PriorityQueue<int[]>(
+                (a, b) -> a[0] != b[0] ? Integer.compare(a[0], b[0]) : Integer.compare(a[1], b[1]));
+        distancias.put(origen.getId(), 0);
+        cola.add(new int[] {0, origen.getId()});
 
-        int idOrigen = origen.getId();
-        int idDestino = destino.getId();
-
-        if (!distancias.containsKey(idOrigen) || !distancias.containsKey(idDestino)) {
-            return rutaMasCorta;
-        }
-
-        distancias.put(idOrigen, 0);
-
-        while (true) {
-            Vertice actual = null;
-            int menorDistancia = infinito;
-
-            for (Vertice candidato : todosLosVertices) {
-                if (candidato == null) {
-                    continue;
-                }
-                int idCandidato = candidato.getId();
-                Boolean yaVisitado = visitadoMapa.get(idCandidato);
-                if (yaVisitado != null && yaVisitado) {
-                    continue;
-                }
-                Integer distObj = distancias.get(idCandidato);
-                if (distObj != null && distObj < menorDistancia) {
-                    menorDistancia = distObj;
-                    actual = candidato;
-                }
+        while (!cola.isEmpty()) {
+            int[] entrada = cola.poll();
+            if (entrada[0] > distancias.get(entrada[1])) {
+                continue; // entrada obsoleta
             }
 
-            if (actual == null || menorDistancia == infinito) {
-                break;
-            }
-
-            int idActual = actual.getId();
-            visitadoMapa.put(idActual, true);
-
-            if (idActual == idDestino) {
+            Vertice actual = vertices.obtener(entrada[1]);
+            ultimosVisitadosDijkstra.add(actual);
+            if (actual.getId() == destino.getId()) {
                 return reconstruirCamino(origen, destino, predecesores);
             }
 
-            List<Arcos> arcosSalientes = obtenerArcosDe(actual);
-            if (arcosSalientes == null) {
-                continue;
-            }
-
-            for (int i = 0; i < arcosSalientes.size(); i++) {
-                Arcos arco = arcosSalientes.get(i);
-                if (arco == null || arco.getDestino() == null) {
-                    continue;
-                }
-                int peso = arco.getPeso();
-                if (peso < 0) {
-                    continue;
-                }
-
+            for (Arcos arco : obtenerArcosDe(actual)) {
                 int idVecino = arco.getDestino().getId();
-                if (!distancias.containsKey(idVecino)) {
-                    continue;
-                }
-
-                Boolean vecinoVisitado = visitadoMapa.get(idVecino);
-                if (vecinoVisitado != null && vecinoVisitado) {
-                    continue;
-                }
-
-                int nuevaDistancia = menorDistancia + peso;
-                Integer distVecinoObj = distancias.get(idVecino);
-                if (distVecinoObj != null && nuevaDistancia < distVecinoObj) {
+                int nuevaDistancia = entrada[0] + arco.getPeso();
+                if (arco.getPeso() >= 0 && nuevaDistancia < distancias.getOrDefault(idVecino, Integer.MAX_VALUE)) {
                     distancias.put(idVecino, nuevaDistancia);
                     predecesores.put(idVecino, actual);
+                    cola.add(new int[] {nuevaDistancia, idVecino});
                 }
             }
         }
 
-        return rutaMasCorta;
+        return new ArrayList<Vertice>();
+    }
+
+    public List<Vertice> getUltimosVisitadosDijkstra() {
+        return ultimosVisitadosDijkstra;
     }
 
     private List<Vertice> reconstruirCamino(Vertice origen, Vertice destino,
