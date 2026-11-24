@@ -41,9 +41,10 @@ aparece como sección colapsada "Ejemplos inválidos".
 
 ## Formato del mapa
 
-Cada carácter del archivo es una celda: `+ - | #` son paredes, el espacio es transitable y `E` / `S`
-marcan entrada y salida. Si el archivo no trae `E` ni `S`, la entrada y la salida son la primera y la
-última abertura del borde. La longitud del camino se cuenta en movimientos entre celdas del mapa.
+Cada carácter del archivo es una celda. `+`, `-` y `|` son paredes. El espacio y `#` son transitables.
+La carga del menú requiere una marca `E` y una marca `S` para indicar la entrada y la salida, o
+exactamente dos posiciones transitables en el borde si no hay marcas. La longitud del camino se
+cuenta en movimientos entre celdas del mapa.
 
 ## Cómo conectar con la base real
 
@@ -76,14 +77,14 @@ Cada posición sigue siendo un solo carácter (mismas filas y columnas); la conv
 | Elemento | ASCII (por defecto) | Unicode |
 |---|---|---|
 | Paredes | `+ - \|` | `─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼` (cada `+` según sus vecinos) |
-| Transitable | espacio | espacio |
+| Transitable (espacio o `#` en el archivo) | espacio | espacio |
 | Entrada | `E` | `▶` |
 | Salida | `S` | `◆` |
 | Visitado | `.` | `·` |
 | Vértice actual | `@` | `◉` |
 | Camino final | `*` | `●` |
 
-Las `#` se conservan en ambos temas. La entrada y la salida siempre quedan visibles.
+La entrada y la salida siempre quedan visibles.
 
 Clases (paquete `frontend.consola`): `TemaConsola` (símbolos), `RenderConsola` (arma el texto y la
 leyenda), `SalidaConsola` (UTF-8 y respaldo a ASCII), `DemoConsola` y `PruebaTema` (`main`).
@@ -115,18 +116,13 @@ chcp 65001
 Usa Windows Terminal, o en la consola clásica una fuente como "Consolas" o "Cascadia Mono". Si la
 consola no usa UTF-8, `SalidaConsola` avisa y vuelve a ASCII. Compila siempre con `-encoding UTF-8`.
 
-### Cómo conectar con la base real
+### Tema en el menú principal
 
-1. Al arrancar el menú, llamar a `SalidaConsola.configurar(TemaConsola.ASCII)` (o `UNICODE`); devuelve
-   el tema efectivo, que puede ser ASCII si la consola no admite Unicode. **Aquí se cambia el tema**
-   (por ejemplo con una opción de menú o el argumento `--unicode`).
-2. Donde el menú imprime el laberinto, reemplazar el dibujo por
-   `RenderConsola.vista(datos, resultado, pasos, mostrarCamino, tema)` y luego
-   `RenderConsola.leyenda(tema)`:
-   - `datos`: un `DatosLaberinto` (convertir el mapa de la base a `char[][]`, entrada y salida).
-   - `resultado`: un `ResultadoVista` con `visitados` y `camino` (o `null` si solo se muestra el mapa).
-   - `pasos`: cuántos visitados mostrar; el último es el vértice actual. Para mostrar todo, `visitados.size()`.
-   - `mostrarCamino`: `true` solo al final y si hay solución.
-3. Si no hay solución, mostrar la exploración completa y el mensaje "No existe camino entre la
-   entrada y la salida", sin longitud.
-4. Las coordenadas de `Celda` son las de la matriz de caracteres, igual que en la GUI.
+Al iniciar `laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII`, pulsa ENTER o elige `1`
+para usar ASCII. Elige `2` para usar Unicode. Con `--unicode` se omite la pregunta. `SalidaConsola`
+configura UTF-8 y vuelve a ASCII si la consola no admite Unicode.
+
+Las opciones 2 a 4 animan la exploración con el tema elegido. Pulsa ENTER para avanzar en modo
+manual o configura una pausa de 0 a 5000 ms. Puedes escribir `f` al elegir el modo o durante el
+avance manual para ver el resultado final. La opción 5 muestra las tres soluciones seguidas y
+reutiliza los resultados del laberinto actual.

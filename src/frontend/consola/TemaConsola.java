@@ -57,8 +57,11 @@ public enum TemaConsola {
         return paredes;
     }
 
-    /** Simbolo que se imprime para la pared en (fila, columna). */
+    /** Simbolo de pared en (fila, columna), o espacio si es transitable. */
     public char pared(DatosLaberinto datos, int fila, int columna) {
+        if (!datos.esPared(fila, columna)) {
+            return transitable();
+        }
         char original = datos.en(fila, columna);
         if (this == ASCII) {
             return original;
@@ -68,9 +71,6 @@ public enum TemaConsola {
         }
         if (original == '|') {
             return '│';
-        }
-        if (original != '+') {
-            return original; // '#' se conserva
         }
         // Un bit por vecino con pared: arriba 1, derecha 2, abajo 4, izquierda 8.
         int vecinos = 0;
@@ -97,7 +97,6 @@ public enum TemaConsola {
         if (fila < 0 || fila >= datos.filas() || columna < 0 || columna >= datos.columnas()) {
             return false;
         }
-        char c = datos.en(fila, columna);
-        return c == '+' || c == '-' || c == '|';
+        return datos.esPared(fila, columna);
     }
 }

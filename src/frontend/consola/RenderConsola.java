@@ -22,6 +22,13 @@ public final class RenderConsola {
      */
     public static String vista(DatosLaberinto datos, ResultadoVista resultado, int pasos,
                                boolean mostrarCamino, TemaConsola tema) {
+        return vista(datos, resultado, pasos, mostrarCamino,
+                resultado != null && pasos < resultado.visitados().size(), tema);
+    }
+
+    /** Permite marcar el vertice actual tambien en el ultimo paso de la exploracion. */
+    public static String vista(DatosLaberinto datos, ResultadoVista resultado, int pasos,
+                               boolean mostrarCamino, boolean mostrarActual, TemaConsola tema) {
         int filas = datos.filas();
         int cols = datos.columnas();
         boolean[][] visitado = new boolean[filas][cols];
@@ -33,7 +40,7 @@ public final class RenderConsola {
             for (int i = 0; i < n; i++) {
                 visitado[v.get(i).fila()][v.get(i).columna()] = true;
             }
-            if (n > 0 && n < v.size()) {
+            if (mostrarActual && n > 0) {
                 actual = v.get(n - 1);
             }
             if (mostrarCamino) {

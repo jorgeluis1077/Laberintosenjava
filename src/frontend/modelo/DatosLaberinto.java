@@ -22,7 +22,7 @@ public record DatosLaberinto(String nombreArchivo, char[][] mapa,
 
     public boolean esPared(int fila, int col) {
         char c = mapa[fila][col];
-        return c == '+' || c == '-' || c == '|' || c == '#';
+        return c == '+' || c == '-' || c == '|';
     }
 
     public Celda entrada() {

@@ -1,5 +1,8 @@
 package laberintoproyectofundamentosiii;
 
+import frontend.consola.SalidaConsola;
+import frontend.consola.TemaConsola;
+import frontend.modelo.DatosLaberinto;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -10,34 +13,64 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class LaberintoProyectoFundamentosIII {
     private static final Pattern LIMITE_NUMERICO = Pattern.compile("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
 
+    private enum Algoritmo {
+        DFS("DFS", Grafo::DFS, Grafo::getUltimoCaminoDFS),
+        BFS("BFS", Grafo::BFS, Grafo::getUltimoCaminoBFS),
+        DIJKSTRA("Dijkstra", Grafo::caminoMasCorto, Grafo::getUltimosVisitadosDijkstra);
+
+        private final String nombre;
+        private final Function<Grafo, List<Vertice>> buscar;
+        private final Function<Grafo, List<Vertice>> leerComplemento;
+
+        Algoritmo(String nombre, Function<Grafo, List<Vertice>> buscar,
+                  Function<Grafo, List<Vertice>> leerComplemento) {
+            this.nombre = nombre;
+            this.buscar = buscar;
+            this.leerComplemento = leerComplemento;
+        }
+
+        ResultadoBusqueda ejecutar(Grafo grafo) {
+            long inicio = System.nanoTime();
+            List<Vertice> principal = buscar.apply(grafo);
+            long tiempoNanos = System.nanoTime() - inicio;
+            List<Vertice> complemento = leerComplemento.apply(grafo);
+            // Dijkstra devuelve el camino; DFS y BFS devuelven los visitados.
+            return this == DIJKSTRA ? new ResultadoBusqueda(complemento, principal, tiempoNanos)
+                    : new ResultadoBusqueda(principal, complemento, tiempoNanos);
+        }
+    }
+
+    private record ResultadoBusqueda(List<Vertice> visitados, List<Vertice> camino, long tiempoNanos) {}
+
     public static void main(String[] args) {
-        ejecutarMenu();
+        ejecutarMenu(Arrays.asList(args).contains("--unicode"));
     }
 
     public static void ejecutarMenu() {
+        ejecutarMenu(false);
+    }
+
+    private static void ejecutarMenu(boolean unicode) {
         Scanner sc = new Scanner(System.in);
-        String mapa = null;
+        if (!unicode) {
+            System.out.println("Estilo de símbolos: 1) ASCII  2) Unicode (ENTER = ASCII)");
+            unicode = sc.hasNextLine() && sc.nextLine().strip().equals("2");
+        }
+        TemaConsola tema = SalidaConsola.configurar(unicode ? TemaConsola.UNICODE : TemaConsola.ASCII);
+        DatosLaberinto datos = null;
         Grafo grafo = null;
-
-        List<Vertice> resultadoDFS = null;
-        List<Vertice> caminoDFS = null;
-
-        List<Vertice> resultadoBFS = null;
-        List<Vertice> caminoBFS = null;
-
-        List<Vertice> caminoCorto = null;
-
-        boolean hayDFS = false;
-        boolean hayBFS = false;
-        boolean hayDijkstra = false;
+        Algoritmo[] algoritmos = Algoritmo.values();
+        EnumMap<Algoritmo, ResultadoBusqueda> resultados = new EnumMap<>(Algoritmo.class);
         int opcion = 0;
 
         do {
@@ -71,19 +104,10 @@ public class LaberintoProyectoFundamentosIII {
                 if (nuevoMapa != null) {
                     Grafo nuevoGrafo = construirGrafoDesdeMapa(nuevoMapa);
                     if (nuevoGrafo != null && nuevoGrafo.getInicio() != null && nuevoGrafo.getMeta() != null) {
-                        mapa = nuevoMapa;
                         grafo = nuevoGrafo;
-
-                        resultadoDFS = null;
-                        caminoDFS = null;
-                        resultadoBFS = null;
-                        caminoBFS = null;
-                        caminoCorto = null;
-
-                        hayDFS = false;
-                        hayBFS = false;
-                        hayDijkstra = false;
-                        System.out.println("Se cargo el archivo y se construyo el grafo.\n" + mapa);
+                        datos = Despliegue.datosDelMapa(nuevoMapa, grafo);
+                        resultados.clear();
+                        System.out.println("Se cargo el archivo y se construyo el grafo.\n" + nuevoMapa);
                     } else {
                         System.out.println("No se pudo construir el grafo (verifica inicio y meta). Se mantiene el anterior.");
                     }
@@ -91,48 +115,28 @@ public class LaberintoProyectoFundamentosIII {
                     System.out.println("Fallo al cargar. Se mantiene el laberinto anterior, si es que ya existia");
                 }
             } else if (opcion >= 2 && opcion <= 5) {
-                if (mapa == null || grafo == null) {
+                if (grafo == null) {
                     System.out.println("Carga primero un laberinto (opcion 1).");
-                } else if (opcion == 2) {
-                    System.out.println("Ejecutando DFS...");
-                    resultadoDFS = grafo.DFS();
-                    caminoDFS = grafo.getUltimoCaminoDFS();
-                    hayDFS = grafo.isUltimaSolucionDFS();
-                    System.out.println("Visitados DFS: " + resultadoDFS);
-                    mostrarRuta("Camino DFS", caminoDFS, hayDFS);
-                } else if (opcion == 3) {
-                    System.out.println("Ejecutando BFS...");
-                    resultadoBFS = grafo.BFS();
-                    caminoBFS = grafo.getUltimoCaminoBFS();
-                    hayBFS = grafo.isUltimaSolucionBFS();
-                    System.out.println("Visitados BFS: " + resultadoBFS);
-                    mostrarRuta("Camino BFS", caminoBFS, hayBFS);
-                } else if (opcion == 4) {
-                    System.out.println("Ejecutando Dijkstra (caminoMasCorto)...");
-                    caminoCorto = grafo.caminoMasCorto();
-                    hayDijkstra = (caminoCorto != null && !caminoCorto.isEmpty());
-                    mostrarRuta("Camino mas corto (Dijkstra)", caminoCorto, hayDijkstra);
-                } else {
+                } else if (opcion == 5) {
                     System.out.println("\n=== RESUMEN DE LAS 3 SOLUCIONES ===");
-                    if (!hayDFS) {
-                        resultadoDFS = grafo.DFS();
-                        caminoDFS = grafo.getUltimoCaminoDFS();
-                        hayDFS = grafo.isUltimaSolucionDFS();
+                    for (Algoritmo algoritmo : algoritmos) {
+                        ResultadoBusqueda resultado = resultados.get(algoritmo);
+                        if (resultado == null) {
+                            resultado = algoritmo.ejecutar(grafo);
+                            resultados.put(algoritmo, resultado);
+                        }
+                        new Despliegue(datos, sc, tema, algoritmo.nombre,
+                                resultado.camino(), resultado.tiempoNanos())
+                                .mostrarSolucion(resultado.visitados());
                     }
-                    mostrarRuta("1) DFS", caminoDFS, hayDFS);
-
-                    if (!hayBFS) {
-                        resultadoBFS = grafo.BFS();
-                        caminoBFS = grafo.getUltimoCaminoBFS();
-                        hayBFS = grafo.isUltimaSolucionBFS();
-                    }
-                    mostrarRuta("2) BFS", caminoBFS, hayBFS);
-
-                    if (!hayDijkstra) {
-                        caminoCorto = grafo.caminoMasCorto();
-                        hayDijkstra = (caminoCorto != null && !caminoCorto.isEmpty());
-                    }
-                    mostrarRuta("3) Dijkstra (caminoMasCorto)", caminoCorto, hayDijkstra);
+                } else {
+                    Algoritmo algoritmo = algoritmos[opcion - 2];
+                    System.out.println("Ejecutando " + algoritmo.nombre + "...");
+                    ResultadoBusqueda resultado = algoritmo.ejecutar(grafo);
+                    resultados.put(algoritmo, resultado);
+                    new Despliegue(datos, sc, tema, algoritmo.nombre,
+                            resultado.camino(), resultado.tiempoNanos())
+                            .despliegaLaberinto(resultado.visitados());
                 }
             } else if (opcion != 6) {
                 System.out.println("La opcion que ingresaste no es correcta. Intenta de nuevo");
@@ -140,16 +144,6 @@ public class LaberintoProyectoFundamentosIII {
         } while (opcion != 6);
 
         sc.close();
-    }
-
-    private static void mostrarRuta(String titulo, List<Vertice> camino, boolean encontrada) {
-        System.out.println("--- " + titulo + " ---");
-        if (!encontrada || camino == null || camino.isEmpty()) {
-            System.out.println("No se encontro un camino hacia la meta.");
-            return;
-        }
-        System.out.println("Pasos en el camino: " + camino.size());
-        System.out.println("Ruta: " + camino);
     }
 
     public static Grafo construirGrafoDesdeMapa(String mapa) {

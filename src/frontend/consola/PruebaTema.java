@@ -14,7 +14,8 @@ import java.util.List;
  */
 public final class PruebaTema {
 
-    private static final String PAREDES_UNICODE = "─│┌┐└┘├┤┬┴┼#";
+    private static final String PAREDES_ASCII = "+-|";
+    private static final String PAREDES_UNICODE = "─│┌┐└┘├┤┬┴┼";
 
     private PruebaTema() {
     }
@@ -74,9 +75,9 @@ public final class PruebaTema {
             for (int c = 0; c < d.columnas(); c++) {
                 char a = ascii[f].charAt(c);
                 char u = uni[f].charAt(c);
-                if (d.esPared(f, c)) {
+                if (pared(d, f, c)) {
                     // (b) pared en ambas vistas
-                    if ("+-|#".indexOf(a) < 0 || PAREDES_UNICODE.indexOf(u) < 0) {
+                    if (PAREDES_ASCII.indexOf(a) < 0 || PAREDES_UNICODE.indexOf(u) < 0) {
                         throw new AssertionError(nombre + ": pared perdida en " + f + "," + c);
                     }
                     // (c) ningun '+' sin convertir y esquinas/cruces correctos
@@ -87,7 +88,7 @@ public final class PruebaTema {
                         throw new AssertionError(nombre + ": simbolo incorrecto en " + f + "," + c
                                 + " (se esperaba " + esperado(d, f, c) + " y hay " + u + ")");
                     }
-                } else if ("+-|#".indexOf(a) >= 0 || PAREDES_UNICODE.indexOf(u) >= 0) {
+                } else if (PAREDES_ASCII.indexOf(a) >= 0 || PAREDES_UNICODE.indexOf(u) >= 0) {
                     throw new AssertionError(nombre + ": transitable convertido en pared en " + f + "," + c);
                 }
             }
@@ -109,6 +110,6 @@ public final class PruebaTema {
     }
 
     private static boolean pared(DatosLaberinto d, int f, int c) {
-        return f >= 0 && f < d.filas() && c >= 0 && c < d.columnas() && "+-|".indexOf(d.en(f, c)) >= 0;
+        return f >= 0 && f < d.filas() && c >= 0 && c < d.columnas() && PAREDES_ASCII.indexOf(d.en(f, c)) >= 0;
     }
 }
