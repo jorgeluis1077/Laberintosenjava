@@ -1,9 +1,13 @@
 package laberintoproyectofundamentosiii;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +60,13 @@ public class LaberintoProyectoFundamentosIII {
             }
 
             if (opcion == 1) {
-                String nuevoMapa = seleccionarYLeerLaberinto(sc);
+                String nuevoMapa;
+                try {
+                    nuevoMapa = seleccionarYLeerLaberinto(sc);
+                } catch (LaberintoInvalidoException e) {
+                    System.out.println("Error al cargar: " + e.getMessage());
+                    continue;
+                }
 
                 if (nuevoMapa != null) {
                     Grafo nuevoGrafo = construirGrafoDesdeMapa(nuevoMapa);
@@ -230,7 +240,7 @@ public class LaberintoProyectoFundamentosIII {
         return grafo;
     }
 
-    public static String seleccionarYLeerLaberinto(Scanner sc) {
+    public static String seleccionarYLeerLaberinto(Scanner sc) throws LaberintoInvalidoException {
         System.out.print("Ruta del archivo (ENTER para listar los mapas): ");
         if (!sc.hasNextLine()) {
             return null;
@@ -310,112 +320,103 @@ public class LaberintoProyectoFundamentosIII {
         return caracter >= '0' && caracter <= '9';
     }
 
-    public static String validarYLeerLaberinto(String ruta) {
-        try {
-            File archivo = new File(ruta);
-            if (!archivo.exists() || !archivo.canRead()) {
-                System.out.println("No se puede leer el archivo");
-                return null;
+    public static String validarYLeerLaberinto(String ruta) throws LaberintoInvalidoException {
+        List<String> renglones = leerRenglones(ruta);
+        if (!renglones.isEmpty() && renglones.get(0).startsWith("\uFEFF")) {
+            renglones.set(0, renglones.get(0).substring(1));
+        }
+        int totalFilas = renglones.size();
+        while (totalFilas > 0 && renglones.get(totalFilas - 1).isEmpty()) {
+            totalFilas--;
+        }
+        if (totalFilas == 0) {
+            throw new LaberintoInvalidoException("El archivo está vacío o solo contiene saltos de línea.");
+        }
+
+        int totalColumnas = renglones.get(0).length();
+        int cantidadE = 0;
+        int cantidadS = 0;
+        String entrada = null;
+        String salida = null;
+        int transitablesEnBorde = 0;
+        int[] filasBorde = new int[2];
+        int[] columnasBorde = new int[2];
+
+        for (int fila = 0; fila < totalFilas; fila++) {
+            String renglon = renglones.get(fila);
+            if (renglon.isEmpty()) {
+                throw new LaberintoInvalidoException("El renglón " + (fila + 1) + " tiene longitud 0.");
             }
-
-            List<String> renglones = new ArrayList<>(Files.readAllLines(archivo.toPath(), StandardCharsets.UTF_8));
-            if (!renglones.isEmpty() && renglones.get(0).startsWith("\uFEFF")) {
-                renglones.set(0, renglones.get(0).substring(1));
+            if (renglon.length() != totalColumnas) {
+                throw new LaberintoInvalidoException("El renglón " + (fila + 1) + " tiene distinta longitud.");
             }
-            int totalFilas = renglones.size();
-            while (totalFilas > 0 && renglones.get(totalFilas - 1).isEmpty()) {
-                totalFilas--;
-            }
-
-            if (totalFilas == 0) {
-                System.out.println("El archivo esta vacio o solo contiene saltos de linea.");
-                return null;
-            }
-
-            int totalColumnas = renglones.get(0).length();
-            if (totalColumnas == 0) {
-                System.out.println("Los renglones no pueden tener longitud 0");
-                return null;
-            }
-
-            int cantidadE = 0;
-            int cantidadS = 0;
-            int filaEntrada = -1;
-            int columnaEntrada = -1;
-            int filaSalida = -1;
-            int columnaSalida = -1;
-
-            for (int fila = 0; fila < totalFilas; fila++) {
-                String lineaActual = renglones.get(fila);
-
-                if (lineaActual.length() != totalColumnas) {
-                    System.out.println("El renglon " + (fila + 1) + " tiene distinta longitud.");
-                    return null;
-                }
-
-                for (int col = 0; col < totalColumnas; col++) {
-                    char caracter = lineaActual.charAt(col);
-                    if (caracter != '+' && caracter != '-' && caracter != '|' && caracter != ' '
-                            && caracter != '#' && caracter != 'E' && caracter != 'S') {
-                        System.out.println("Caracter invalido '" + caracter + "' en fila " + (fila + 1)
-                                + ", columna " + (col + 1) + ".");
-                        return null;
-                    }
-                    if (caracter == 'E') {
+            for (int col = 0; col < totalColumnas; col++) {
+                char caracter = renglon.charAt(col);
+                switch (caracter) {
+                    case '+', '-', '|' -> { }
+                    case 'E' -> {
                         cantidadE++;
-                        filaEntrada = fila;
-                        columnaEntrada = col;
+                        entrada = coordenadas(fila, col);
                     }
-                    if (caracter == 'S') {
+                    case 'S' -> {
                         cantidadS++;
-                        filaSalida = fila;
-                        columnaSalida = col;
+                        salida = coordenadas(fila, col);
                     }
-                }
-            }
-
-            if (cantidadE > 0 || cantidadS > 0) {
-                if (cantidadE != 1 || cantidadS != 1) {
-                    System.out.println("Debe haber exactamente una E y una S");
-                    return null;
-                }
-                System.out.println("Entrada: (" + filaEntrada + "," + columnaEntrada + ") | Salida: (" + filaSalida + "," + columnaSalida + ")");
-            } else {
-                int transitablesEnBorde = 0;
-                int[] filaBorde = new int[2];
-                int[] columnaBorde = new int[2];
-
-                for (int fila = 0; fila < totalFilas; fila++) {
-                    String renglon = renglones.get(fila);
-                    for (int col = 0; col < totalColumnas; col++) {
-                        boolean estaEnBorde = (fila == 0 || fila == totalFilas - 1
-                                || col == 0 || col == totalColumnas - 1);
-                        char caracter = renglon.charAt(col);
-                        boolean esTransitable = (caracter == ' ' || caracter == '#'
-                                || caracter == 'E' || caracter == 'S');
-
-                        if (estaEnBorde && esTransitable) {
-                            if (transitablesEnBorde < 2) {
-                                filaBorde[transitablesEnBorde] = fila;
-                                columnaBorde[transitablesEnBorde] = col;
+                    case ' ', '#' -> {
+                        if (fila == 0 || fila == totalFilas - 1 || col == 0 || col == totalColumnas - 1) {
+                            if (transitablesEnBorde < filasBorde.length) {
+                                filasBorde[transitablesEnBorde] = fila;
+                                columnasBorde[transitablesEnBorde] = col;
                             }
                             transitablesEnBorde++;
                         }
                     }
+                    default -> {
+                        String motivo = caracter == '\t' ? "Tabulación inválida" : "Carácter inválido '" + caracter + "'";
+                        throw new LaberintoInvalidoException(motivo + " en fila " + (fila + 1)
+                                + ", columna " + (col + 1) + ".");
+                    }
                 }
-
-                if (transitablesEnBorde != 2) {
-                    System.out.println("Sin E/S debe haber exactamente 2 espacios transitables en el borde.");
-                    return null;
-                }
-                System.out.println("Entrada borde: (" + filaBorde[0] + "," + columnaBorde[0]
-                        + ") | Salida borde: (" + filaBorde[1] + "," + columnaBorde[1] + ")");
             }
-
-            return String.join("\n", renglones.subList(0, totalFilas)) + "\n";
-        } catch (Exception e) {
-            System.out.println("Error al cargar: " + e.getMessage());
-            return null;
         }
+
+        if (cantidadE > 0 || cantidadS > 0) {
+            if (cantidadE != 1 || cantidadS != 1) {
+                throw new LaberintoInvalidoException("Debe haber exactamente una E y una S.");
+            }
+            System.out.println("Entrada: " + entrada + " | Salida: " + salida);
+        } else {
+            if (transitablesEnBorde != 2) {
+                throw new LaberintoInvalidoException("Sin E/S debe haber exactamente 2 posiciones transitables en el borde. "
+                        + "Se encontraron " + transitablesEnBorde + ".");
+            }
+            System.out.println("Entrada borde: " + coordenadas(filasBorde[0], columnasBorde[0])
+                    + " | Salida borde: " + coordenadas(filasBorde[1], columnasBorde[1]));
+        }
+
+        return String.join("\n", renglones.subList(0, totalFilas)) + "\n";
+    }
+
+    private static List<String> leerRenglones(String ruta) throws LaberintoInvalidoException {
+        try {
+            Path archivo = Path.of(ruta);
+            if (Files.notExists(archivo)) {
+                throw new LaberintoInvalidoException("El archivo no existe.");
+            }
+            if (!Files.isRegularFile(archivo) || !Files.isReadable(archivo)) {
+                throw new LaberintoInvalidoException("La ruta debe corresponder a un archivo legible.");
+            }
+            return new ArrayList<>(Files.readAllLines(archivo, StandardCharsets.UTF_8));
+        } catch (InvalidPathException e) {
+            throw new LaberintoInvalidoException("La ruta del archivo no es válida.", e);
+        } catch (CharacterCodingException e) {
+            throw new LaberintoInvalidoException("El archivo no contiene texto UTF-8 válido.", e);
+        } catch (IOException | SecurityException e) {
+            throw new LaberintoInvalidoException("No se puede leer el archivo.", e);
+        }
+    }
+
+    private static String coordenadas(int fila, int columna) {
+        return "(" + fila + "," + columna + ")";
     }
 }
