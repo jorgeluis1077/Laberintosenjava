@@ -20,8 +20,16 @@ public final class Despliegue {
     private final String algoritmo;
     private final List<Vertice> camino;
 
-    public Despliegue(String mapa, Grafo grafo, Scanner entrada, TemaConsola tema,
+    public Despliegue(DatosLaberinto datos, Scanner entrada, TemaConsola tema,
                       String algoritmo, List<Vertice> camino) {
+        this.datos = datos;
+        this.entrada = entrada;
+        this.tema = tema;
+        this.algoritmo = algoritmo;
+        this.camino = camino;
+    }
+
+    static DatosLaberinto datosDelMapa(String mapa, Grafo grafo) {
         String[] filas = mapa.split("\n");
         char[][] celdas = new char[filas.length][];
         for (int i = 0; i < filas.length; i++) {
@@ -29,17 +37,12 @@ public final class Despliegue {
         }
         Vertice inicio = grafo.getInicio();
         Vertice meta = grafo.getMeta();
-        datos = new DatosLaberinto("", celdas, inicio.getFila(), inicio.getColumna(),
+        return new DatosLaberinto("", celdas, inicio.getFila(), inicio.getColumna(),
                 meta.getFila(), meta.getColumna());
-        this.entrada = entrada;
-        this.tema = tema;
-        this.algoritmo = algoritmo;
-        this.camino = camino;
     }
 
     public void despliegaLaberinto(List<Vertice> ordenVisita) {
-        ResultadoVista resultado = new ResultadoVista(algoritmo, aCeldas(ordenVisita),
-                aCeldas(camino), !camino.isEmpty(), 0);
+        ResultadoVista resultado = convertirResultado(ordenVisita);
         int total = resultado.visitados().size();
         if (total > 0) {
             int pausa = elegirPausa();
@@ -55,11 +58,31 @@ public final class Despliegue {
 
         System.out.print(LIMPIAR_PANTALLA);
         System.out.println("Resultado final: " + algoritmo);
-        System.out.print(RenderConsola.vista(datos, resultado, total, resultado.encontrado(), tema));
-        System.out.print(RenderConsola.leyenda(tema));
-        if (!resultado.encontrado()) {
+        mostrarResultado(resultado, true);
+    }
+
+    void mostrarSolucion(List<Vertice> ordenVisita) {
+        System.out.println("\n--- " + algoritmo + " ---");
+        mostrarResultado(convertirResultado(ordenVisita), false);
+    }
+
+    private void mostrarResultado(ResultadoVista resultado, boolean incluirLeyenda) {
+        int visitados = resultado.visitados().size();
+        System.out.print(RenderConsola.vista(datos, resultado, visitados, resultado.encontrado(), tema));
+        if (incluirLeyenda) {
+            System.out.print(RenderConsola.leyenda(tema));
+        }
+        System.out.println("Visitados: " + visitados);
+        if (resultado.encontrado()) {
+            int longitud = resultado.longitud();
+            System.out.println("Longitud: " + longitud + (longitud == 1 ? " movimiento" : " movimientos"));
+        } else {
             System.out.println("No existe camino entre la entrada y la salida");
         }
+    }
+
+    private ResultadoVista convertirResultado(List<Vertice> visitados) {
+        return new ResultadoVista(algoritmo, aCeldas(visitados), aCeldas(camino), !camino.isEmpty(), 0);
     }
 
     private static List<Celda> aCeldas(List<Vertice> vertices) {
