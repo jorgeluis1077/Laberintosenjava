@@ -1,5 +1,6 @@
 package laberintoproyectofundamentosiii;
 
+import frontend.consola.SalidaConsola;
 import frontend.consola.TemaConsola;
 import frontend.modelo.DatosLaberinto;
 import java.io.File;
@@ -52,11 +53,20 @@ public class LaberintoProyectoFundamentosIII {
     private record ResultadoBusqueda(List<Vertice> visitados, List<Vertice> camino, long tiempoNanos) {}
 
     public static void main(String[] args) {
-        ejecutarMenu();
+        ejecutarMenu(Arrays.asList(args).contains("--unicode"));
     }
 
     public static void ejecutarMenu() {
+        ejecutarMenu(false);
+    }
+
+    private static void ejecutarMenu(boolean unicode) {
         Scanner sc = new Scanner(System.in);
+        if (!unicode) {
+            System.out.println("Estilo de símbolos: 1) ASCII  2) Unicode (ENTER = ASCII)");
+            unicode = sc.hasNextLine() && sc.nextLine().strip().equals("2");
+        }
+        TemaConsola tema = SalidaConsola.configurar(unicode ? TemaConsola.UNICODE : TemaConsola.ASCII);
         DatosLaberinto datos = null;
         Grafo grafo = null;
         Algoritmo[] algoritmos = Algoritmo.values();
@@ -115,7 +125,7 @@ public class LaberintoProyectoFundamentosIII {
                             resultado = algoritmo.ejecutar(grafo);
                             resultados.put(algoritmo, resultado);
                         }
-                        new Despliegue(datos, sc, TemaConsola.ASCII, algoritmo.nombre,
+                        new Despliegue(datos, sc, tema, algoritmo.nombre,
                                 resultado.camino(), resultado.tiempoNanos())
                                 .mostrarSolucion(resultado.visitados());
                     }
@@ -124,7 +134,7 @@ public class LaberintoProyectoFundamentosIII {
                     System.out.println("Ejecutando " + algoritmo.nombre + "...");
                     ResultadoBusqueda resultado = algoritmo.ejecutar(grafo);
                     resultados.put(algoritmo, resultado);
-                    new Despliegue(datos, sc, TemaConsola.ASCII, algoritmo.nombre,
+                    new Despliegue(datos, sc, tema, algoritmo.nombre,
                             resultado.camino(), resultado.tiempoNanos())
                             .despliegaLaberinto(resultado.visitados());
                 }
