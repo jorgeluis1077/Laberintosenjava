@@ -26,11 +26,21 @@ La descripción original indica que el sistema valida la estructura de los mapas
 
 ## Autores y responsabilidades
 
-| Integrante | Usuario de GitHub | Responsabilidades indicadas en el README original | Responsabilidades definitivas |
-| --- | --- | --- | --- |
-| Sergio Carrillo Osorio | Pendiente de completar | Implementación de `CaminoMasCorto` (Dijkstra), integración del menú y pruebas de recorrido. | Pendiente de confirmar o completar. |
-| Jorge Luis Guarista Tanori | Pendiente de completar | Implementación de los algoritmos DFS y BFS. | Pendiente de confirmar o completar. |
-| Mario Francisco Ramirez Morales | Pendiente de completar | No figuraba en el README original. | Auditoría y frontend; pendiente de detallar el alcance. |
+| Integrante | Usuario de GitHub |
+| --- | --- |
+| Mario Ramírez | MarioJavaScript |
+| jorgeluis1077 | jorgeluis1077 |
+| Sergipato (sergiocarrilli42-debug) | sergiocarrilli42-debug |
+
+El README anterior nombraba a **Mario Francisco Ramirez Morales**, **Jorge Luis Guarista Tanori** y **Sergio Carrillo Osorio**. Los campos de autor de los commits de Jorge y Sergio solo muestran `jorgeluis1077` y `Sergipato`, respectivamente; por ello la tabla usa las identidades de GitHub indicadas para esta entrega.
+
+| Integrante | Responsabilidad |
+| --- | --- |
+| Mario Ramírez | Puntos extras: caracteres alternativos, interfaz gráfica con Swing y tiempos de solución; formato del README. El README anterior también le asignaba auditoría y frontend. |
+| jorgeluis1077 | Aportó mapas de laberinto 6 a 10, según sus commits y los archivos que añadió. |
+| sergiocarrilli42-debug | Añadió las clases del grafo y `CaminoMasCorto`, el selector y lector de archivos, mapas y documentación del proyecto. |
+
+**Atribuciones que ya figuraban en el README:** a Sergio se le asignaban la implementación de `CaminoMasCorto` (Dijkstra), la integración del menú y las pruebas de recorrido; a Jorge, la implementación de DFS y BFS. Se conservan como antecedentes documentales. El historial disponible respalda los archivos indicados en la tabla; la implementación de DFS y BFS no aparece en el código actual.
 
 ## Fecha de entrega
 
@@ -47,15 +57,20 @@ La descripción original indica que el sistema valida la estructura de los mapas
 
 ## Estructura del repositorio
 
-| Ruta | Contenido |
-| --- | --- |
-| `LaberintoProyectoFundamentosIII/src/LaberintoProyectoFundamentosIII.java` | Clase principal, menú, selección de archivos `.txt` y validación de mapas. |
-| `Clases/src/Vertice.java` | Coordenadas, clave y marcas de entrada y salida de un vértice. |
-| `Clases/src/Vertices.java` | Colección de vértices indexada por clave. |
-| `Clases/src/Arcos.java` | Arco entre dos vértices y su peso. |
-| `Clases/src/Grafo.java` | Lista de adyacencia y construcción de vértices y arcos desde un mapa. |
-| `Clases/src/CaminoMasCorto.java` | Implementación de Dijkstra y reconstrucción del camino. |
-| `MapaLaberintos/laberinto1.txt` a `laberinto10.txt` | Mapas de ejemplo. |
+```text
+Laberintosenjava/
+├── Clases/src/
+│   ├── Arcos.java                 Arco entre vértices y su peso.
+│   ├── CaminoMasCorto.java        Dijkstra y reconstrucción del camino.
+│   ├── Grafo.java                 Listas de adyacencia y construcción desde un mapa.
+│   ├── Vertice.java               Coordenadas, clave y marcas de entrada y salida.
+│   └── Vertices.java              Colección de vértices indexada por clave.
+├── LaberintoProyectoFundamentosIII/src/
+│   └── LaberintoProyectoFundamentosIII.java  Clase principal, menú, selección y validación de archivos .txt.
+├── MapaLaberintos/
+│   └── laberinto1.txt ... laberinto10.txt    Mapas de ejemplo.
+└── README.md                      Documentación del proyecto.
+```
 
 ## Compilación y ejecución
 
@@ -117,11 +132,11 @@ Para indicar los extremos hay dos modalidades: usar exactamente una `E` y una `S
 Ejemplo original: `MapaLaberintos/laberinto6.txt`. Los espacios al final de la cuarta fila son parte del mapa y deben conservarse al copiarlo.
 
 ```text
--+-+
++-+-+
     |
--+ +
++-+ +
 |    
--+-+
++-+-+
 ```
 
 En este mapa se construyen **9 vértices**, con inicio **(1,0)** y meta **(3,4)**, según el README original. Al cargar archivos, la descripción original indica que se listan los disponibles, se construye el grafo de celdas transitables y se identifican la entrada y la meta. La carga actual solo identifica y muestra los extremos; la construcción del grafo no se llama desde el menú.
@@ -143,7 +158,9 @@ En este mapa se construyen **9 vértices**, con inicio **(1,0)** y meta **(3,4)*
 
 **Alternativa de adyacencia.** Cada celda transitable se modela como un `Vertice` identificado por su clave o posición. `Grafo` conecta las celdas transitables contiguas mediante objetos `Arcos` en listas de adyacencia, en lugar de emplear una matriz de adyacencia densa. Los arcos que crea `construirDesdeMapa` tienen peso 1.
 
-**Orden de DFS y BFS descrito originalmente.** Los vecinos se exploran arriba, derecha, abajo e izquierda; en DFS se cuida el orden en que se apilan. **Pendiente de verificar:** no hay implementaciones de DFS ni BFS en el repositorio actual. Además, `Grafo.construirDesdeMapa` genera sus arcos en el orden arriba, abajo, izquierda y derecha.
+**Orden de DFS y BFS descrito originalmente.** Los vecinos se exploran arriba, derecha, abajo e izquierda; en DFS se cuida el orden en que se apilan.
+
+> **Nota: pendiente de verificar.** No hay implementaciones de DFS ni BFS en el código actual, así que no se puede afirmar su orden real de exploración. `Grafo.construirDesdeMapa` genera los arcos en el orden **arriba, abajo, izquierda y derecha**, distinto del orden anunciado en el README.
 
 **Desempate de Dijkstra.** Cuando dos o más vértices no visitados tienen la misma distancia mínima actual, se compara el texto de sus claves en orden alfabético; gana la clave que aparece primero. El criterio es repetible y no depende del orden interno de la `Hashtable`:
 
@@ -155,15 +172,16 @@ Este criterio aparece en `CaminoMasCorto.obtenerSiguienteVerticeMenorDistancia`.
 
 ## Uso de IA
 
-El README original declara el uso de **Gemini (Google)** como apoyo en la revisión y depuración de la lógica de `CaminoMasCorto`, el manejo de colecciones y casos borde con valores nulos, la resolución de dudas generales del proyecto, la implementación del menú usando `list.dir` o similar, y la redacción y estructura de este README. Falta atribuir esta declaración a cada integrante y completar el modelo concreto, si se conoce.
+El README anterior declaraba **Gemini (Google)** como apoyo en la revisión y depuración de la lógica de `CaminoMasCorto`, el manejo de colecciones y casos borde con valores nulos, la resolución de dudas generales del proyecto, la implementación del menú usando `list.dir` o similar, y la redacción y estructura de este README. Esa descripción histórica se conserva; la declaración por integrante para esta entrega es la siguiente:
 
 | Integrante | Empresa | Modelo | Uso |
 | --- | --- | --- | --- |
-| Sergio Carrillo Osorio | Pendiente de completar | Pendiente de completar | Pendiente de completar por el integrante. |
-| Jorge Luis Guarista Tanori | Pendiente de completar | Pendiente de completar | Pendiente de completar por el integrante. |
-| Mario Francisco Ramirez Morales | Pendiente de completar | Pendiente de completar | Pendiente de completar por el integrante. |
+| Mario Ramírez | OpenAI | ChatGPT (Astra 6.2) | Generar código de los extras (interfaz gráfica con Swing y caracteres alternativos). |
+| Mario Ramírez | Anthropic | Claude Opus 5.5 | Auditar el código y el estado del repositorio. |
+| jorgeluis1077 | Google | Gemini Hydrogen | Apoyo en el desarrollo del proyecto. |
+| sergiocarrilli42-debug | Google | Gemini Hydrogen | Apoyo en el desarrollo del proyecto. |
 
-Si alguno de los integrantes no utilizó IA, puede registrar **«No se utilizó IA»** en su fila y dejar **Empresa** y **Modelo** como **«No aplica»**. La declaración original de Gemini se conserva arriba hasta que el equipo precise su atribución.
+El formato anterior contemplaba declarar **«No se utilizó IA»** en la fila correspondiente y **«No aplica»** en Empresa y Modelo. Las cuatro declaraciones concretas anteriores sustituyen esos campos abiertos.
 
 ## Estado del proyecto
 
@@ -176,4 +194,7 @@ La inspección del código disponible muestra estos puntos pendientes respecto d
 | DFS y BFS | No aparecen implementaciones de estos algoritmos en los archivos Java actuales. |
 | Dijkstra desde el menú | `CaminoMasCorto.caminoMasCorto` existe, pero la opción 4 no lo invoca ni presenta sus estadísticas. |
 | Visualización de soluciones | La opción 5 solo imprime los indicadores de las opciones elegidas; no presenta caminos ni mapas marcados con `#`. |
+| Caracteres alternativos | El lector y el grafo solo reconocen `+`, `-`, `|`, espacio, `#`, `E` y `S`; los caracteres alternativos asignados como punto extra aún no aparecen. |
+| Interfaz gráfica con Swing | No hay clases ni imports de Swing en el código actual; el frontend disponible es el menú de consola. |
+| Tiempos de solución | No hay medición ni presentación de tiempos de ejecución de los algoritmos. |
 | Pasos de compilación documentados | Queda por confirmar o adaptar la estructura necesaria para NetBeans y los comandos originales de consola. |
