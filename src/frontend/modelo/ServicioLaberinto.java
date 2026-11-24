@@ -20,9 +20,6 @@ public interface ServicioLaberinto {
 
     ResultadoVista resolverDijkstra();
 
-    /** Descarta resultados guardados del laberinto anterior. */
-    void reiniciarResultados();
-
     /** Carpeta de ejemplos, si existe. */
     Optional<Path> carpetaEjemplos();
 

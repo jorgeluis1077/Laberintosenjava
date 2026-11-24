@@ -4,6 +4,7 @@ import frontend.modelo.DatosLaberinto;
 import frontend.modelo.ErrorCargaException;
 import frontend.modelo.ResultadoVista;
 import frontend.modelo.ServicioLaberinto;
+import laberintoproyectofundamentosiii.LaberintoProyectoFundamentosIII.Algoritmo;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -41,7 +42,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 /** Ventana principal. Solo conoce ServicioLaberinto, nunca las clases de la base. */
 public class VentanaLaberinto extends JFrame {
 
-    private static final String[] ALGORITMOS = {"DFS", "BFS", "Dijkstra"};
+    private static final Algoritmo[] ALGORITMOS = Algoritmo.values();
+    private static final String[] NOMBRES = java.util.Arrays.stream(ALGORITMOS).map(Algoritmo::toString).toArray(String[]::new);
     private static final String TIP_SIN_LABERINTO = "Primero carga un laberinto";
     private static final String TIP_OCUPADO = "Espera a que termine el cálculo";
     private static final int ZOOM_MIN = 8;
@@ -62,10 +64,10 @@ public class VentanaLaberinto extends JFrame {
     private final BotonEstilo btnComparar = new BotonEstilo("Comparar los tres");
     private final BotonEstilo btnTiempos = new BotonEstilo("Tiempos");
     private final BotonEstilo btnSalir = new BotonEstilo("Salir");
-    private final Map<String, BotonEstilo> btnAlgoritmo = new LinkedHashMap<>();
+    private final Map<Algoritmo, BotonEstilo> btnAlgoritmo = new LinkedHashMap<>();
 
     private final PanelEjemplos panelEjemplos;
-    private final PanelResultados panelResultados = new PanelResultados(ALGORITMOS);
+    private final PanelResultados panelResultados = new PanelResultados(NOMBRES);
     private final PanelLaberinto panelLab = new PanelLaberinto();
     private final JScrollPane scroll = new JScrollPane(panelLab);
     private final VistaComparar vistaComparar;
@@ -88,8 +90,8 @@ public class VentanaLaberinto extends JFrame {
         this.servicio = servicio;
         this.animador = new Animador(this::alPaso, this::alTerminarAnimacion);
         animador.setVelocidad(sliderVel.getValue());
-        this.panelEjemplos = new PanelEjemplos(servicio, this::cargar);
-        this.vistaComparar = new VistaComparar(ALGORITMOS, () -> cartas.show(centro, "lab"));
+        this.panelEjemplos = new PanelEjemplos(servicio, this::cargar, this::setOcupado);
+        this.vistaComparar = new VistaComparar(NOMBRES, () -> cartas.show(centro, "lab"));
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         getContentPane().setBackground(Tema.PANEL);
@@ -105,6 +107,7 @@ public class VentanaLaberinto extends JFrame {
         setSize(1280, 780);
         setMinimumSize(new Dimension(1100, 680));
         setLocationRelativeTo(null);
+        panelEjemplos.actualizar();
     }
 
     // ---------- Construccion de la interfaz ----------
@@ -122,9 +125,9 @@ public class VentanaLaberinto extends JFrame {
         JLabel resolver = new JLabel("Resolver:");
         resolver.setForeground(Tema.TEXTO_SEC);
         grupos.add(resolver);
-        for (String nombre : ALGORITMOS) {
-            BotonEstilo b = new BotonEstilo(nombre);
-            btnAlgoritmo.put(nombre, b);
+        for (Algoritmo algoritmo : ALGORITMOS) {
+            BotonEstilo b = new BotonEstilo(algoritmo.toString());
+            btnAlgoritmo.put(algoritmo, b);
             grupos.add(b);
         }
         grupos.add(separador());
@@ -251,7 +254,7 @@ public class VentanaLaberinto extends JFrame {
             dispose();
             System.exit(0);
         });
-        for (Map.Entry<String, BotonEstilo> e : btnAlgoritmo.entrySet()) {
+        for (Map.Entry<Algoritmo, BotonEstilo> e : btnAlgoritmo.entrySet()) {
             e.getValue().addActionListener(ev -> resolver(e.getKey()));
         }
         btnComparar.addActionListener(e -> compararTodos());
@@ -295,29 +298,52 @@ public class VentanaLaberinto extends JFrame {
             panelEjemplos.seleccionar(archivoActual);
             return;
         }
-        try {
-            DatosLaberinto nuevo = servicio.cargar(archivo);
-            animador.detener();
-            servicio.reiniciarResultados();
-            resultados.clear();
-            panelResultados.limpiar();
-            datos = nuevo;
-            archivoActual = archivo;
-            actual = null;
-            paso = 0;
-            btnPausa.setText("Pausar");
-            refrescarVista();
-            cartas.show(centro, "lab");
-            panelEjemplos.seleccionar(archivo);
-            lblEstado.setText("Cargado: " + nombre(archivo) + " (" + datos.filas() + "x" + datos.columnas() + ")");
-            actualizarControles();
-            SwingUtilities.invokeLater(this::ajustarZoom);
-        } catch (ErrorCargaException ex) {
-            panelEjemplos.seleccionar(archivoActual);
-            lblEstado.setText("No se pudo cargar: " + nombre(archivo));
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "No se pudo cargar el laberinto",
-                    JOptionPane.ERROR_MESSAGE);
-        }
+        setOcupado(true);
+        lblEstado.setText("Cargando: " + nombre(archivo));
+        new SwingWorker<DatosLaberinto, Void>() {
+            @Override
+            protected DatosLaberinto doInBackground() throws ErrorCargaException {
+                return servicio.cargar(archivo);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    aplicarCarga(archivo, get());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    mostrarErrorCarga(archivo, e);
+                } catch (ExecutionException e) {
+                    mostrarErrorCarga(archivo, e.getCause());
+                } finally {
+                    setOcupado(false);
+                }
+            }
+        }.execute();
+    }
+
+    private void aplicarCarga(Path archivo, DatosLaberinto nuevo) {
+        animador.detener();
+        resultados.clear();
+        panelResultados.limpiar();
+        datos = nuevo;
+        archivoActual = archivo;
+        actual = null;
+        paso = 0;
+        btnPausa.setText("Pausar");
+        refrescarVista();
+        cartas.show(centro, "lab");
+        panelEjemplos.seleccionar(archivo);
+        lblEstado.setText("Cargado: " + nombre(archivo) + " (" + datos.filas() + "x" + datos.columnas() + ")");
+        actualizarControles();
+        SwingUtilities.invokeLater(this::ajustarZoom);
+    }
+
+    private void mostrarErrorCarga(Path archivo, Throwable ex) {
+        panelEjemplos.seleccionar(archivoActual);
+        lblEstado.setText("No se pudo cargar: " + nombre(archivo));
+        JOptionPane.showMessageDialog(this, ex.getMessage(), "No se pudo cargar el laberinto",
+                JOptionPane.ERROR_MESSAGE);
     }
 
     private static String nombre(Path p) {
@@ -342,15 +368,15 @@ public class VentanaLaberinto extends JFrame {
 
     // ---------- Resolver ----------
 
-    private ResultadoVista ejecutar(String algoritmo) {
+    private ResultadoVista ejecutar(Algoritmo algoritmo) {
         return switch (algoritmo) {
-            case "DFS" -> servicio.resolverDFS();
-            case "BFS" -> servicio.resolverBFS();
-            default -> servicio.resolverDijkstra();
+            case DFS -> servicio.resolverDFS();
+            case BFS -> servicio.resolverBFS();
+            case DIJKSTRA -> servicio.resolverDijkstra();
         };
     }
 
-    private void resolver(String algoritmo) {
+    private void resolver(Algoritmo algoritmo) {
         if (datos == null || ocupado) {
             return;
         }
@@ -370,13 +396,16 @@ public class VentanaLaberinto extends JFrame {
                 ocupado = false;
                 try {
                     ResultadoVista r = get();
-                    resultados.put(algoritmo, r);
+                    resultados.put(algoritmo.toString(), r);
                     panelResultados.actualizar(datos, resultados);
                     actual = r;
                     btnPausa.setText("Pausar");
                     animador.iniciar(r.visitados().size());
                     lblEstado.setText("Animando " + algoritmo + ": " + r.visitados().size() + " visitados");
-                } catch (InterruptedException | ExecutionException ex) {
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    errorAlResolver(ex);
+                } catch (ExecutionException ex) {
                     errorAlResolver(ex);
                 }
                 actualizarControles();
@@ -396,7 +425,7 @@ public class VentanaLaberinto extends JFrame {
             @Override
             protected List<ResultadoVista> doInBackground() {
                 List<ResultadoVista> lista = new ArrayList<>();
-                for (String a : ALGORITMOS) {
+                for (Algoritmo a : ALGORITMOS) {
                     lista.add(ejecutar(a));
                 }
                 return lista;
@@ -413,7 +442,10 @@ public class VentanaLaberinto extends JFrame {
                     vistaComparar.mostrar(datos, resultados);
                     cartas.show(centro, "comparar");
                     lblEstado.setText("Comparación lista");
-                } catch (InterruptedException | ExecutionException ex) {
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    errorAlResolver(ex);
+                } catch (ExecutionException ex) {
                     errorAlResolver(ex);
                 }
                 actualizarControles();
@@ -436,7 +468,7 @@ public class VentanaLaberinto extends JFrame {
         }
         String[] columnas = {"Algoritmo", "Visitados", "Longitud", "Tiempo (ns)", "Tiempo (ms)"};
         List<Object[]> filas = new ArrayList<>();
-        for (String a : ALGORITMOS) {
+        for (String a : NOMBRES) {
             ResultadoVista r = resultados.get(a);
             if (r != null) {
                 filas.add(new Object[]{a, r.visitados().size(), r.encontrado() ? r.longitud() : "Sin camino",
@@ -500,9 +532,11 @@ public class VentanaLaberinto extends JFrame {
         }
         habilitar(btnComparar, libre, tip);
         habilitar(btnCargar, !ocupado, TIP_OCUPADO);
+        habilitar(btnTiempos, !ocupado, TIP_OCUPADO);
+        habilitar(btnSalir, !ocupado, TIP_OCUPADO);
         panelEjemplos.setHabilitado(!ocupado);
 
-        boolean enCurso = actual != null && !animador.terminada();
+        boolean enCurso = !ocupado && actual != null && !animador.terminada();
         btnPausa.setEnabled(enCurso);
         btnSiguiente.setEnabled(enCurso);
         btnFinal.setEnabled(enCurso);
@@ -513,8 +547,13 @@ public class VentanaLaberinto extends JFrame {
         }
     }
 
-    private static void habilitar(BotonEstilo b, boolean on, String tipSiNo) {
-        b.setEnabled(on);
-        b.setToolTipText(on ? null : tipSiNo);
+    private void setOcupado(boolean valor) {
+        ocupado = valor;
+        actualizarControles();
+    }
+
+    private static void habilitar(BotonEstilo b, boolean habilitado, String tipSiNo) {
+        b.setEnabled(habilitado);
+        b.setToolTipText(habilitado ? null : tipSiNo);
     }
 }

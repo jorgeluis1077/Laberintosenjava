@@ -45,7 +45,8 @@ final class Tema {
     static void aplicar() {
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch (Exception ignorada) {
+        } catch (javax.swing.UnsupportedLookAndFeelException | ClassNotFoundException
+                 | InstantiationException | IllegalAccessException ignorada) {
             // Se usa el look and feel por defecto.
         }
         FontUIResource base = new FontUIResource(fuente(Font.PLAIN, 13));

@@ -38,7 +38,6 @@ java -cp /tmp/laberinto frontend.gui.MainSwing
 | --- | --- |
 | `cargar(Path)` | Valida y lee el mapa con la base y construye el grafo. Si falla, lanza `ErrorCargaException` con el motivo de `LaberintoInvalidoException` y conserva el laberinto anterior. |
 | `resolverDFS()`, `resolverBFS()`, `resolverDijkstra()` | Ejecutan el algoritmo con la enumeración `Algoritmo` del menú (mide con `System.nanoTime()` solo la llamada al algoritmo), convierten los vértices a `Celda(fila, columna)` con `Despliegue.resultadoVista` y guardan el resultado; si ya existe para el laberinto actual, devuelven el guardado. Sin laberinto cargado lanzan `IllegalStateException`. |
-| `reiniciarResultados()` | Limpia los resultados guardados. |
 | `carpetaEjemplos()`, `listarEjemplos()`, `listarEjemplosInvalidos()` | Devuelven `MapaLaberintos` y sus `.txt` (y los de `invalidos/`) en orden natural, con el mismo comparador que el menú. |
 
 Los métodos con estado son `synchronized`, porque la GUI los llama desde `SwingWorker`.

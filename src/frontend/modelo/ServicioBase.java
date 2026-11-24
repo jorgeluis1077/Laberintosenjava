@@ -1,6 +1,7 @@
 package frontend.modelo;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -36,7 +37,7 @@ public final class ServicioBase implements ServicioLaberinto {
         try {
             mapa = LaberintoProyectoFundamentosIII.validarYLeerLaberinto(archivo.toString());
         } catch (LaberintoInvalidoException e) {
-            throw new ErrorCargaException(e.getMessage());
+            throw new ErrorCargaException(e.getMessage(), e);
         }
         grafo = LaberintoProyectoFundamentosIII.construirGrafoDesdeMapa(mapa);
         resultados.clear();
@@ -56,11 +57,6 @@ public final class ServicioBase implements ServicioLaberinto {
     @Override
     public ResultadoVista resolverDijkstra() {
         return resolver(Algoritmo.DIJKSTRA);
-    }
-
-    @Override
-    public synchronized void reiniciarResultados() {
-        resultados.clear();
     }
 
     private synchronized ResultadoVista resolver(Algoritmo algoritmo) {
@@ -96,8 +92,10 @@ public final class ServicioBase implements ServicioLaberinto {
                     .sorted(Comparator.comparing(p -> p.getFileName().toString(),
                             LaberintoProyectoFundamentosIII::compararNombres))
                     .toList();
-        } catch (IOException e) {
+        } catch (java.nio.file.NoSuchFileException e) {
             return List.of();
+        } catch (IOException e) {
+            throw new UncheckedIOException("No se pudo listar " + carpeta, e);
         }
     }
 }

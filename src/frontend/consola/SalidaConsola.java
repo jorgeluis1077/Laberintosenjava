@@ -16,15 +16,15 @@ public final class SalidaConsola {
      * y la salida no lo admite, avisa y devuelve ASCII.
      */
     public static TemaConsola configurar(TemaConsola pedido) {
+        if (pedido == TemaConsola.ASCII) {
+            return pedido;
+        }
         PrintStream utf8;
         try {
             utf8 = new PrintStream(System.out, true, StandardCharsets.UTF_8);
             System.setOut(utf8);
-        } catch (RuntimeException e) {
+        } catch (SecurityException e) {
             return respaldo(pedido, "no se pudo configurar UTF-8");
-        }
-        if (pedido == TemaConsola.ASCII) {
-            return pedido;
         }
         // Si hay consola real, su pagina de codigos debe ser UTF-8 (en Windows: chcp 65001).
         Console consola = System.console();

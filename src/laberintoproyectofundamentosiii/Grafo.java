@@ -1,18 +1,20 @@
 package laberintoproyectofundamentosiii;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Grafo dirigido de un laberinto.
+ * Grafo no dirigido: cada conexión se guarda como dos arcos (ida y vuelta) de costo 1.
  * <ul>
- *   <li>Adyacencia: {@code Hashtable<Integer, List<Arcos>>} cuyas listas son ligadas
+ *   <li>Adyacencia: {@code Hashtable<Integer, LinkedList<Arcos>>} cuyas listas son ligadas
  *       ({@link LinkedList}); la clave es el id del vertice (fila * columnas + columna).</li>
  *   <li>Orden de exploracion: los arcos se crean en el orden arriba, derecha, abajo,
  *       izquierda. BFS los recorre en ese orden; DFS los apila en orden inverso para
@@ -25,29 +27,25 @@ public class Grafo {
 
     private int columnas;
     private Vertices vertices;
-    private Hashtable<Integer, List<Arcos>> adyacencia;
+    private Hashtable<Integer, LinkedList<Arcos>> adyacencia;
     private Vertice inicio;
     private Vertice meta;
 
     // --- Estado auxiliar de DFS ---
     private List<Vertice> ultimoCaminoDFS;
-    private boolean ultimaSolucionDFS;
 
     // --- Estado auxiliar de BFS ---
     private List<Vertice> ultimoCaminoBFS;
-    private boolean ultimaSolucionBFS;
 
     // --- Estado auxiliar de Dijkstra ---
     private List<Vertice> ultimosVisitadosDijkstra;
 
     public Grafo(int columnas) {
         this.columnas = columnas;
-        this.vertices = new Vertices(columnas);
-        this.adyacencia = new Hashtable<Integer, List<Arcos>>();
+        this.vertices = new Vertices();
+        this.adyacencia = new Hashtable<>();
         this.ultimoCaminoDFS = new ArrayList<Vertice>();
-        this.ultimaSolucionDFS = false;
         this.ultimoCaminoBFS = new ArrayList<Vertice>();
-        this.ultimaSolucionBFS = false;
         this.ultimosVisitadosDijkstra = new ArrayList<Vertice>();
     }
 
@@ -63,9 +61,7 @@ public class Grafo {
         }
         int id = asignarId(vertice);
         vertices.agregar(vertice);
-        if (!adyacencia.containsKey(id)) {
-            adyacencia.put(id, new LinkedList<Arcos>());
-        }
+        adyacencia.computeIfAbsent(id, k -> new LinkedList<>());
         if (vertice.esEntrada() && this.inicio == null) {
             this.inicio = vertice;
         }
@@ -95,24 +91,12 @@ public class Grafo {
         return (lista != null) ? lista : Collections.<Arcos>emptyList();
     }
 
-    public Vertices getVertices() {
-        return vertices;
-    }
-
     public Vertice getInicio() {
         return inicio;
     }
 
-    public void setInicio(Vertice inicio) {
-        this.inicio = inicio;
-    }
-
     public Vertice getMeta() {
         return meta;
-    }
-
-    public void setMeta(Vertice meta) {
-        this.meta = meta;
     }
 
 
@@ -125,33 +109,13 @@ public class Grafo {
     public List<Vertice> DFS(Vertice origen, Vertice destino) {
         List<Vertice> visitados = new ArrayList<Vertice>();
         this.ultimoCaminoDFS = new ArrayList<Vertice>();
-        this.ultimaSolucionDFS = false;
-
-        if (this.vertices == null || origen == null || destino == null) {
+        if (origen == null || destino == null || !vertices.existe(origen.getId()) || !vertices.existe(destino.getId())) {
             return visitados;
         }
+        HashSet<Integer> visitadoMapa = new HashSet<>();
+        HashMap<Integer, Integer> predecesores = new HashMap<>();
 
-        Collection<Vertice> todosLosVertices = this.vertices.todos();
-        if (todosLosVertices == null) {
-            return visitados;
-        }
-
-        Hashtable<Integer, Boolean> visitadoMapa = new Hashtable<Integer, Boolean>();
-        Hashtable<Integer, Vertice> predecesores = new Hashtable<Integer, Vertice>();
-
-        for (Vertice actual : todosLosVertices) {
-            if (actual != null) {
-                visitadoMapa.put(actual.getId(), false);
-            }
-        }
-
-        int idOrigen = origen.getId();
         int idDestino = destino.getId();
-
-        if (!visitadoMapa.containsKey(idOrigen) || !visitadoMapa.containsKey(idDestino)) {
-            return visitados;
-        }
-
 
         // Pila (LIFO) de pares {vertice, padre que lo apilo}
         Deque<Vertice[]> pilaDFS = new ArrayDeque<Vertice[]>();
@@ -160,51 +124,25 @@ public class Grafo {
         while (!pilaDFS.isEmpty()) {
             Vertice[] entrada = pilaDFS.pop();
             Vertice verticeActual = entrada[0];
-            if (verticeActual == null) {
-                continue;
-            }
-
             int idActual = verticeActual.getId();
-            Boolean yaVisitado = visitadoMapa.get(idActual);
-            if (yaVisitado != null && yaVisitado) {
+            if (!visitadoMapa.add(idActual)) {
                 continue;
             }
-
-            visitadoMapa.put(idActual, true);
             visitados.add(verticeActual);
             if (entrada[1] != null) {
-                predecesores.put(idActual, entrada[1]);
+                predecesores.put(idActual, entrada[1].getId());
             }
 
             if (idActual == idDestino) {
-                this.ultimaSolucionDFS = true;
                 this.ultimoCaminoDFS = reconstruirCamino(origen, destino, predecesores);
                 return visitados;
             }
 
-            List<Arcos> arcosSalientes = obtenerArcosDe(verticeActual);
-            if (arcosSalientes == null || arcosSalientes.isEmpty()) {
-                continue;
-            }
-
-            for (int i = arcosSalientes.size() - 1; i >= 0; i--) {
-                Arcos arco = arcosSalientes.get(i);
-                if (arco == null) {
-                    continue;
-                }
-
+            Iterator<Arcos> inverso = adyacencia.get(idActual).descendingIterator();
+            while (inverso.hasNext()) {
+                Arcos arco = inverso.next();
                 Vertice vecino = arco.getDestino();
-                if (vecino == null) {
-                    continue;
-                }
-
-                int idVecino = vecino.getId();
-                if (!visitadoMapa.containsKey(idVecino)) {
-                    continue;
-                }
-
-                Boolean vecinoVisitado = visitadoMapa.get(idVecino);
-                if (vecinoVisitado == null || !vecinoVisitado) {
+                if (!visitadoMapa.contains(vecino.getId())) {
                     pilaDFS.push(new Vertice[] {vecino, verticeActual});
                 }
             }
@@ -215,10 +153,6 @@ public class Grafo {
 
     public List<Vertice> getUltimoCaminoDFS() {
         return ultimoCaminoDFS;
-    }
-
-    public boolean isUltimaSolucionDFS() {
-        return ultimaSolucionDFS;
     }
 
     // Fin del DFS
@@ -232,81 +166,37 @@ public class Grafo {
     public List<Vertice> BFS(Vertice origen, Vertice destino) {
         List<Vertice> visitados = new ArrayList<Vertice>();
         this.ultimoCaminoBFS = new ArrayList<Vertice>();
-        this.ultimaSolucionBFS = false;
-
-        if (this.vertices == null || origen == null || destino == null) {
+        if (origen == null || destino == null || !vertices.existe(origen.getId()) || !vertices.existe(destino.getId())) {
             return visitados;
         }
-
-        Collection<Vertice> todosLosVertices = this.vertices.todos();
-        if (todosLosVertices == null) {
-            return visitados;
-        }
-
-        Hashtable<Integer, Boolean> visitadoMapa = new Hashtable<Integer, Boolean>();
-        Hashtable<Integer, Vertice> predecesores = new Hashtable<Integer, Vertice>();
-
-        for (Vertice actual : todosLosVertices) {
-            if (actual != null) {
-                visitadoMapa.put(actual.getId(), false);
-            }
-        }
+        HashSet<Integer> visitadoMapa = new HashSet<>();
+        HashMap<Integer, Integer> predecesores = new HashMap<>();
 
         int idOrigen = origen.getId();
         int idDestino = destino.getId();
 
-        if (!visitadoMapa.containsKey(idOrigen) || !visitadoMapa.containsKey(idDestino)) {
-            return visitados;
-        }
-
 
         // Cola (FIFO)
         Deque<Vertice> colaBFS = new ArrayDeque<Vertice>();
-        visitadoMapa.put(idOrigen, true);
+        visitadoMapa.add(idOrigen);
         colaBFS.add(origen);
 
         while (!colaBFS.isEmpty()) {
             Vertice verticeActual = colaBFS.poll();
-            if (verticeActual == null) {
-                continue;
-            }
-
             int idActual = verticeActual.getId();
             visitados.add(verticeActual);
 
             if (idActual == idDestino) {
-                this.ultimaSolucionBFS = true;
                 this.ultimoCaminoBFS = reconstruirCamino(origen, destino, predecesores);
                 return visitados;
             }
 
             List<Arcos> arcosSalientes = obtenerArcosDe(verticeActual);
-            if (arcosSalientes == null || arcosSalientes.isEmpty()) {
-                continue;
-            }
-
-            for (int i = 0; i < arcosSalientes.size(); i++) {
-                Arcos arco = arcosSalientes.get(i);
-                if (arco == null) {
-                    continue;
-                }
-
+            for (Arcos arco : arcosSalientes) {
                 Vertice vecino = arco.getDestino();
-                if (vecino == null) {
-                    continue;
-                }
-
                 int idVecino = vecino.getId();
-                if (!visitadoMapa.containsKey(idVecino)) {
-                    continue;
-                }
-
-                Boolean yaVisitado = visitadoMapa.get(idVecino);
-                if (yaVisitado == null || !yaVisitado) {
-                    visitadoMapa.put(idVecino, true);
-                    if (!predecesores.containsKey(idVecino)) {
-                        predecesores.put(idVecino, verticeActual);
-                    }
+                if (visitadoMapa.add(idVecino)) {
+                    predecesores.put(idVecino, idActual);
                     colaBFS.add(vecino);
                 }
             }
@@ -317,10 +207,6 @@ public class Grafo {
 
     public List<Vertice> getUltimoCaminoBFS() {
         return ultimoCaminoBFS;
-    }
-
-    public boolean isUltimaSolucionBFS() {
-        return ultimaSolucionBFS;
     }
 
     // Fin del BFS
@@ -334,13 +220,13 @@ public class Grafo {
     public List<Vertice> caminoMasCorto(Vertice origen, Vertice destino) {
         this.ultimosVisitadosDijkstra = new ArrayList<Vertice>();
 
-        if (this.vertices == null || origen == null || destino == null
+        if (origen == null || destino == null
                 || !vertices.existe(origen.getId()) || !vertices.existe(destino.getId())) {
             return new ArrayList<Vertice>();
         }
 
         Hashtable<Integer, Integer> distancias = new Hashtable<Integer, Integer>();
-        Hashtable<Integer, Vertice> predecesores = new Hashtable<Integer, Vertice>();
+        HashMap<Integer, Integer> predecesores = new HashMap<>();
 
         // Entradas {distancia, id}: sale primero la menor distancia y, en empate, el menor id
         PriorityQueue<int[]> cola = new PriorityQueue<int[]>(
@@ -365,7 +251,7 @@ public class Grafo {
                 int nuevaDistancia = entrada[0] + arco.getPeso();
                 if (arco.getPeso() >= 0 && nuevaDistancia < distancias.getOrDefault(idVecino, Integer.MAX_VALUE)) {
                     distancias.put(idVecino, nuevaDistancia);
-                    predecesores.put(idVecino, actual);
+                    predecesores.put(idVecino, actual.getId());
                     cola.add(new int[] {nuevaDistancia, idVecino});
                 }
             }
@@ -379,7 +265,7 @@ public class Grafo {
     }
 
     private List<Vertice> reconstruirCamino(Vertice origen, Vertice destino,
-            Hashtable<Integer, Vertice> predecesores) {
+            HashMap<Integer, Integer> predecesores) {
         List<Vertice> camino = new ArrayList<Vertice>();
         Vertice paso = destino;
 
@@ -389,7 +275,8 @@ public class Grafo {
             if (idPaso == origen.getId()) {
                 break;
             }
-            paso = predecesores.get(idPaso);
+            Integer padre = predecesores.get(idPaso);
+            paso = padre == null ? null : vertices.obtener(padre);
         }
 
         if (camino.isEmpty() || camino.get(camino.size() - 1).getId() != origen.getId()) {
