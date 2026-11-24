@@ -1,5 +1,6 @@
 package laberintoproyectofundamentosiii;
 
+import frontend.consola.TemaConsola;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -98,20 +99,18 @@ public class LaberintoProyectoFundamentosIII {
                     resultadoDFS = grafo.DFS();
                     caminoDFS = grafo.getUltimoCaminoDFS();
                     hayDFS = grafo.isUltimaSolucionDFS();
-                    System.out.println("Visitados DFS: " + resultadoDFS);
-                    mostrarRuta("Camino DFS", caminoDFS, hayDFS);
+                    mostrarExploracion(mapa, grafo, sc, "DFS", resultadoDFS, caminoDFS);
                 } else if (opcion == 3) {
                     System.out.println("Ejecutando BFS...");
                     resultadoBFS = grafo.BFS();
                     caminoBFS = grafo.getUltimoCaminoBFS();
                     hayBFS = grafo.isUltimaSolucionBFS();
-                    System.out.println("Visitados BFS: " + resultadoBFS);
-                    mostrarRuta("Camino BFS", caminoBFS, hayBFS);
+                    mostrarExploracion(mapa, grafo, sc, "BFS", resultadoBFS, caminoBFS);
                 } else if (opcion == 4) {
                     System.out.println("Ejecutando Dijkstra (caminoMasCorto)...");
                     caminoCorto = grafo.caminoMasCorto();
                     hayDijkstra = (caminoCorto != null && !caminoCorto.isEmpty());
-                    mostrarRuta("Camino mas corto (Dijkstra)", caminoCorto, hayDijkstra);
+                    mostrarExploracion(mapa, grafo, sc, "Dijkstra", grafo.getUltimosVisitadosDijkstra(), caminoCorto);
                 } else {
                     System.out.println("\n=== RESUMEN DE LAS 3 SOLUCIONES ===");
                     if (!hayDFS) {
@@ -140,6 +139,16 @@ public class LaberintoProyectoFundamentosIII {
         } while (opcion != 6);
 
         sc.close();
+    }
+
+    private static void mostrarExploracion(String mapa, Grafo grafo, Scanner sc, String algoritmo,
+                                           List<Vertice> visitados, List<Vertice> camino) {
+        new Despliegue(mapa, grafo, sc, TemaConsola.ASCII, algoritmo, camino).despliegaLaberinto(visitados);
+        System.out.println("Visitados: " + visitados.size());
+        if (!camino.isEmpty()) {
+            int longitud = camino.size() - 1;
+            System.out.println("Longitud: " + longitud + (longitud == 1 ? " movimiento" : " movimientos"));
+        }
     }
 
     private static void mostrarRuta(String titulo, List<Vertice> camino, boolean encontrada) {
