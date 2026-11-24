@@ -1,11 +1,15 @@
 package laberintoproyectofundamentosiii;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class LaberintoProyectoFundamentosIII {
+    private static final Pattern LIMITE_NUMERICO = Pattern.compile("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
 
     public static void main(String[] args) {
         ejecutarMenu();
@@ -38,9 +42,12 @@ public class LaberintoProyectoFundamentosIII {
             System.out.println("6. Salir");
             System.out.print("Opcion: ");
 
+            if (!sc.hasNextLine()) {
+                break;
+            }
             try {
                 opcion = Integer.parseInt(sc.nextLine().trim());
-            } catch (Exception e) {
+            } catch (NumberFormatException e) {
                 System.out.println("Ingresa un numero valido");
                 continue;
             }
@@ -221,10 +228,23 @@ public class LaberintoProyectoFundamentosIII {
     }
 
     public static String seleccionarYLeerLaberinto(Scanner sc) {
-        File carpeta = new File(".");
+        System.out.print("Ruta del archivo (ENTER para listar los mapas): ");
+        if (!sc.hasNextLine()) {
+            return null;
+        }
+        String ruta = sc.nextLine().strip();
+        if (!ruta.isEmpty()) {
+            char extremo = ruta.charAt(0);
+            if (ruta.length() >= 2 && (extremo == '"' || extremo == '\'')
+                    && ruta.charAt(ruta.length() - 1) == extremo) {
+                ruta = ruta.substring(1, ruta.length() - 1);
+            }
+            return validarYLeerLaberinto(ruta);
+        }
 
-        File[] archivosTxt = carpeta.listFiles((dir, nombre) ->
-                nombre.toLowerCase().endsWith(".txt") && new File(dir, nombre).isFile()
+        File carpeta = new File("MapaLaberintos");
+        File[] archivosTxt = carpeta.listFiles(archivo ->
+                archivo.isFile() && archivo.getName().toLowerCase(Locale.ROOT).endsWith(".txt")
         );
 
         if (archivosTxt == null || archivosTxt.length == 0) {
@@ -232,14 +252,7 @@ public class LaberintoProyectoFundamentosIII {
             return null;
         }
 
-        Arrays.sort(archivosTxt, (a, b) -> {
-            int numeroA = extraerNumero(a.getName());
-            int numeroB = extraerNumero(b.getName());
-            if (numeroA != numeroB) {
-                return Integer.compare(numeroA, numeroB);
-            }
-            return a.getName().compareToIgnoreCase(b.getName());
-        });
+        Arrays.sort(archivosTxt, (a, b) -> compararNombres(a.getName(), b.getName()));
 
         System.out.println("\nArchivos .txt disponibles:");
         for (int i = 0; i < archivosTxt.length; i++) {
@@ -247,6 +260,9 @@ public class LaberintoProyectoFundamentosIII {
         }
 
         System.out.print("Elige el numero del archivo (0 para cancelar): ");
+        if (!sc.hasNextLine()) {
+            return null;
+        }
         int eleccion;
         try {
             eleccion = Integer.parseInt(sc.nextLine().trim());
@@ -270,16 +286,25 @@ public class LaberintoProyectoFundamentosIII {
         return validarYLeerLaberinto(archivoElegido.getPath());
     }
 
-    private static int extraerNumero(String nombreArchivo) {
-        String soloDigitos = nombreArchivo.replaceAll("\\D+", "");
-        if (soloDigitos.isEmpty()) {
-            return Integer.MAX_VALUE;
+    private static int compararNombres(String nombreA, String nombreB) {
+        String[] partesA = LIMITE_NUMERICO.split(nombreA);
+        String[] partesB = LIMITE_NUMERICO.split(nombreB);
+        for (int i = 0; i < Math.min(partesA.length, partesB.length); i++) {
+            String parteA = partesA[i];
+            String parteB = partesB[i];
+            int orden = esDigitoAscii(parteA.charAt(0)) && esDigitoAscii(parteB.charAt(0))
+                    ? new BigInteger(parteA).compareTo(new BigInteger(parteB))
+                    : parteA.compareToIgnoreCase(parteB);
+            if (orden != 0) {
+                return orden;
+            }
         }
-        try {
-            return Integer.parseInt(soloDigitos);
-        } catch (NumberFormatException e) {
-            return Integer.MAX_VALUE;
-        }
+        int orden = Integer.compare(partesA.length, partesB.length);
+        return orden != 0 ? orden : nombreA.compareTo(nombreB);
+    }
+
+    private static boolean esDigitoAscii(char caracter) {
+        return caracter >= '0' && caracter <= '9';
     }
 
     public static String validarYLeerLaberinto(String ruta) {
