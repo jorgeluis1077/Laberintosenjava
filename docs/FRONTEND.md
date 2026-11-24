@@ -41,9 +41,10 @@ aparece como sección colapsada "Ejemplos inválidos".
 
 ## Formato del mapa
 
-Cada carácter del archivo es una celda: `+ - | #` son paredes, el espacio es transitable y `E` / `S`
-marcan entrada y salida. Si el archivo no trae `E` ni `S`, la entrada y la salida son la primera y la
-última abertura del borde. La longitud del camino se cuenta en movimientos entre celdas del mapa.
+Cada carácter del archivo es una celda. `+`, `-` y `|` son paredes. El espacio y `#` son transitables.
+La carga del menú requiere una marca `E` y una marca `S` para indicar la entrada y la salida, o
+exactamente dos posiciones transitables en el borde si no hay marcas. La longitud del camino se
+cuenta en movimientos entre celdas del mapa.
 
 ## Cómo conectar con la base real
 
@@ -76,14 +77,14 @@ Cada posición sigue siendo un solo carácter (mismas filas y columnas); la conv
 | Elemento | ASCII (por defecto) | Unicode |
 |---|---|---|
 | Paredes | `+ - \|` | `─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼` (cada `+` según sus vecinos) |
-| Transitable | espacio | espacio |
+| Transitable (espacio o `#` en el archivo) | espacio | espacio |
 | Entrada | `E` | `▶` |
 | Salida | `S` | `◆` |
 | Visitado | `.` | `·` |
 | Vértice actual | `@` | `◉` |
 | Camino final | `*` | `●` |
 
-Las `#` se conservan en ambos temas. La entrada y la salida siempre quedan visibles.
+La entrada y la salida siempre quedan visibles.
 
 Clases (paquete `frontend.consola`): `TemaConsola` (símbolos), `RenderConsola` (arma el texto y la
 leyenda), `SalidaConsola` (UTF-8 y respaldo a ASCII), `DemoConsola` y `PruebaTema` (`main`).
