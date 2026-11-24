@@ -1,0 +1,13 @@
+out/
+build/
+bin/
+*.class
+nbproject/private/
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.DS_Store
+Thumbs.db
