@@ -2,9 +2,10 @@ package laberintoproyectofundamentosiii;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
-public class LaberintoProyectoFundamentosIII {
+public class LaberintoProyectoFundamentosiii {
 
     public static void main(String[] args) {
         ejecutarMenu();
@@ -13,6 +14,16 @@ public class LaberintoProyectoFundamentosIII {
     public static void ejecutarMenu() {
         Scanner sc = new Scanner(System.in);
         String mapa = null;
+        Grafo grafo = null;
+
+        List<Vertice> resultadoDFS = null;
+        List<Vertice> caminoDFS = null;
+
+        List<Vertice> resultadoBFS = null;
+        List<Vertice> caminoBFS = null;
+
+        List<Vertice> caminoCorto = null;
+
         boolean hayDFS = false;
         boolean hayBFS = false;
         boolean hayDijkstra = false;
@@ -38,28 +49,68 @@ public class LaberintoProyectoFundamentosIII {
                 String nuevoMapa = seleccionarYLeerLaberinto(sc);
 
                 if (nuevoMapa != null) {
-                    mapa = nuevoMapa;
-                    hayDFS = false;
-                    hayBFS = false;
-                    hayDijkstra = false;
-                    System.out.println("Se cargo el archivo.\n" + mapa);
+                    Grafo nuevoGrafo = construirGrafoDesdeMapa(nuevoMapa);
+                    if (nuevoGrafo != null && nuevoGrafo.getInicio() != null && nuevoGrafo.getMeta() != null) {
+                        mapa = nuevoMapa;
+                        grafo = nuevoGrafo;
+
+                        resultadoDFS = null;
+                        caminoDFS = null;
+                        resultadoBFS = null;
+                        caminoBFS = null;
+                        caminoCorto = null;
+
+                        hayDFS = false;
+                        hayBFS = false;
+                        hayDijkstra = false;
+                        System.out.println("Se cargo el archivo y se construyo el grafo.\n" + mapa);
+                    } else {
+                        System.out.println("No se pudo construir el grafo (verifica inicio y meta). Se mantiene el anterior.");
+                    }
                 } else {
                     System.out.println("Fallo al cargar. Se mantiene el laberinto anterior, si es que ya existia");
                 }
             } else if (opcion >= 2 && opcion <= 5) {
-                if (mapa == null) {
+                if (mapa == null || grafo == null) {
                     System.out.println("Carga primero un laberinto (opcion 1).");
                 } else if (opcion == 2) {
                     System.out.println("Ejecutando DFS...");
-                    hayDFS = true;
+                    resultadoDFS = grafo.DFS();
+                    caminoDFS = grafo.getUltimoCaminoDFS();
+                    hayDFS = grafo.isUltimaSolucionDFS();
+                    mostrarRuta("Camino DFS", caminoDFS, hayDFS);
                 } else if (opcion == 3) {
                     System.out.println("Ejecutando BFS...");
-                    hayBFS = true;
+                    resultadoBFS = grafo.BFS();
+                    caminoBFS = grafo.getUltimoCaminoBFS();
+                    hayBFS = grafo.isUltimaSolucionBFS();
+                    mostrarRuta("Camino BFS", caminoBFS, hayBFS);
                 } else if (opcion == 4) {
                     System.out.println("Ejecutando Dijkstra (caminoMasCorto)...");
-                    hayDijkstra = true;
+                    caminoCorto = grafo.caminoMasCorto();
+                    hayDijkstra = (caminoCorto != null && !caminoCorto.isEmpty());
+                    mostrarRuta("Camino mas corto (Dijkstra)", caminoCorto, hayDijkstra);
                 } else {
-                    System.out.println("Mostrando las 3 soluciones (DFS:" + hayDFS + ", BFS:" + hayBFS + ", Dijkstra:" + hayDijkstra + ")");
+                    System.out.println("\n=== RESUMEN DE LAS 3 SOLUCIONES ===");
+                    if (!hayDFS) {
+                        resultadoDFS = grafo.DFS();
+                        caminoDFS = grafo.getUltimoCaminoDFS();
+                        hayDFS = grafo.isUltimaSolucionDFS();
+                    }
+                    mostrarRuta("1) DFS", caminoDFS, hayDFS);
+
+                    if (!hayBFS) {
+                        resultadoBFS = grafo.BFS();
+                        caminoBFS = grafo.getUltimoCaminoBFS();
+                        hayBFS = grafo.isUltimaSolucionBFS();
+                    }
+                    mostrarRuta("2) BFS", caminoBFS, hayBFS);
+
+                    if (!hayDijkstra) {
+                        caminoCorto = grafo.caminoMasCorto();
+                        hayDijkstra = (caminoCorto != null && !caminoCorto.isEmpty());
+                    }
+                    mostrarRuta("3) Dijkstra (caminoMasCorto)", caminoCorto, hayDijkstra);
                 }
             } else if (opcion != 6) {
                 System.out.println("La opcion que ingresaste no es correcta. Intenta de nuevo");
@@ -68,6 +119,106 @@ public class LaberintoProyectoFundamentosIII {
 
         sc.close();
     }
+
+    private static void mostrarRuta(String titulo, List<Vertice> camino, boolean encontrada) {
+        System.out.println("--- " + titulo + " ---");
+        if (!encontrada || camino == null || camino.isEmpty()) {
+            System.out.println("No se encontro un camino hacia la meta.");
+            return;
+        }
+        System.out.println("Pasos en el camino: " + camino.size());
+        System.out.println("Ruta: " + camino);
+    }
+
+    private static Grafo construirGrafoDesdeMapa(String mapa) {
+        if (mapa == null || mapa.isEmpty()) {
+            return null;
+        }
+
+        String[] renglones = mapa.split("\n");
+        int filas = renglones.length;
+        int columnas = renglones[0].length();
+
+        Grafo grafo = new Grafo();
+        Vertice[][] matrizVertices = new Vertice[filas][columnas];
+
+        boolean tieneEYS = false;
+        for (int f = 0; f < filas; f++) {
+            for (int c = 0; c < columnas; c++) {
+                char ch = renglones[f].charAt(c);
+                if (ch == 'E' || ch == 'S') {
+                    tieneEYS = true;
+                }
+            }
+        }
+
+        int bordesEncontrados = 0;
+
+        for (int f = 0; f < filas; f++) {
+            for (int c = 0; c < columnas; c++) {
+                char ch = renglones[f].charAt(c);
+                boolean esTransitable = (ch == ' ' || ch == '#' || ch == 'E' || ch == 'S');
+                if (!esTransitable) {
+                    continue;
+                }
+
+                boolean esEntrada = (ch == 'E');
+                boolean esSalida = (ch == 'S');
+
+                if (!tieneEYS) {
+                    boolean enBorde = (f == 0 || f == filas - 1 || c == 0 || c == columnas - 1);
+                    if (enBorde) {
+                        if (bordesEncontrados == 0) {
+                            esEntrada = true;
+                        } else if (bordesEncontrados == 1) {
+                            esSalida = true;
+                        }
+                        bordesEncontrados++;
+                    }
+                }
+
+                // Usamos directamente tu constructor: new Vertice(fila, columna, entrada, salida)
+                Vertice v = new Vertice(f, c, esEntrada, esSalida);
+                matrizVertices[f][c] = v;
+                grafo.agregarVertice(v);
+
+                if (esEntrada) {
+                    grafo.setInicio(v);
+                }
+                if (esSalida) {
+                    grafo.setMeta(v);
+                }
+            }
+        }
+
+        int[] df = {-1, 1, 0, 0};
+        int[] dc = {0, 0, -1, 1};
+
+        for (int f = 0; f < filas; f++) {
+            for (int c = 0; c < columnas; c++) {
+                Vertice origen = matrizVertices[f][c];
+                if (origen == null) {
+                    continue;
+                }
+
+                for (int d = 0; d < 4; d++) {
+                    int nf = f + df[d];
+                    int nc = c + dc[d];
+                    if (nf >= 0 && nf < filas && nc >= 0 && nc < columnas) {
+                        Vertice destino = matrizVertices[nf][nc];
+                        if (destino != null) {
+                            char chDest = renglones[nf].charAt(nc);
+                            int peso = (chDest == '#') ? 5 : 1;
+                            grafo.agregarArco(origen, destino, peso);
+                        }
+                    }
+                }
+            }
+        }
+
+        return grafo;
+    }
+
     public static String seleccionarYLeerLaberinto(Scanner sc) {
         File carpeta = new File(".");
 
