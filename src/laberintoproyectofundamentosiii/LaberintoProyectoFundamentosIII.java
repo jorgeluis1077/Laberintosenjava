@@ -16,33 +16,40 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class LaberintoProyectoFundamentosIII {
     private static final Pattern LIMITE_NUMERICO = Pattern.compile("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
 
     private enum Algoritmo {
-        DFS("DFS"), BFS("BFS"), DIJKSTRA("Dijkstra");
+        DFS("DFS", Grafo::DFS, Grafo::getUltimoCaminoDFS),
+        BFS("BFS", Grafo::BFS, Grafo::getUltimoCaminoBFS),
+        DIJKSTRA("Dijkstra", Grafo::caminoMasCorto, Grafo::getUltimosVisitadosDijkstra);
 
         private final String nombre;
+        private final Function<Grafo, List<Vertice>> buscar;
+        private final Function<Grafo, List<Vertice>> leerComplemento;
 
-        Algoritmo(String nombre) {
+        Algoritmo(String nombre, Function<Grafo, List<Vertice>> buscar,
+                  Function<Grafo, List<Vertice>> leerComplemento) {
             this.nombre = nombre;
+            this.buscar = buscar;
+            this.leerComplemento = leerComplemento;
         }
 
         ResultadoBusqueda ejecutar(Grafo grafo) {
-            return switch (this) {
-                case DFS -> new ResultadoBusqueda(grafo.DFS(), grafo.getUltimoCaminoDFS());
-                case BFS -> new ResultadoBusqueda(grafo.BFS(), grafo.getUltimoCaminoBFS());
-                case DIJKSTRA -> {
-                    List<Vertice> camino = grafo.caminoMasCorto();
-                    yield new ResultadoBusqueda(grafo.getUltimosVisitadosDijkstra(), camino);
-                }
-            };
+            long inicio = System.nanoTime();
+            List<Vertice> principal = buscar.apply(grafo);
+            long tiempoNanos = System.nanoTime() - inicio;
+            List<Vertice> complemento = leerComplemento.apply(grafo);
+            // Dijkstra devuelve el camino; DFS y BFS devuelven los visitados.
+            return this == DIJKSTRA ? new ResultadoBusqueda(complemento, principal, tiempoNanos)
+                    : new ResultadoBusqueda(principal, complemento, tiempoNanos);
         }
     }
 
-    private record ResultadoBusqueda(List<Vertice> visitados, List<Vertice> camino) {}
+    private record ResultadoBusqueda(List<Vertice> visitados, List<Vertice> camino, long tiempoNanos) {}
 
     public static void main(String[] args) {
         ejecutarMenu();
@@ -108,7 +115,8 @@ public class LaberintoProyectoFundamentosIII {
                             resultado = algoritmo.ejecutar(grafo);
                             resultados.put(algoritmo, resultado);
                         }
-                        new Despliegue(datos, sc, TemaConsola.ASCII, algoritmo.nombre, resultado.camino())
+                        new Despliegue(datos, sc, TemaConsola.ASCII, algoritmo.nombre,
+                                resultado.camino(), resultado.tiempoNanos())
                                 .mostrarSolucion(resultado.visitados());
                     }
                 } else {
@@ -116,7 +124,8 @@ public class LaberintoProyectoFundamentosIII {
                     System.out.println("Ejecutando " + algoritmo.nombre + "...");
                     ResultadoBusqueda resultado = algoritmo.ejecutar(grafo);
                     resultados.put(algoritmo, resultado);
-                    new Despliegue(datos, sc, TemaConsola.ASCII, algoritmo.nombre, resultado.camino())
+                    new Despliegue(datos, sc, TemaConsola.ASCII, algoritmo.nombre,
+                            resultado.camino(), resultado.tiempoNanos())
                             .despliegaLaberinto(resultado.visitados());
                 }
             } else if (opcion != 6) {

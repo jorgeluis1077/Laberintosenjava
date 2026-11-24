@@ -6,6 +6,7 @@ import frontend.modelo.Celda;
 import frontend.modelo.DatosLaberinto;
 import frontend.modelo.ResultadoVista;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 public final class Despliegue {
@@ -19,14 +20,16 @@ public final class Despliegue {
     private final TemaConsola tema;
     private final String algoritmo;
     private final List<Vertice> camino;
+    private final long tiempoNanos;
 
     public Despliegue(DatosLaberinto datos, Scanner entrada, TemaConsola tema,
-                      String algoritmo, List<Vertice> camino) {
+                      String algoritmo, List<Vertice> camino, long tiempoNanos) {
         this.datos = datos;
         this.entrada = entrada;
         this.tema = tema;
         this.algoritmo = algoritmo;
         this.camino = camino;
+        this.tiempoNanos = tiempoNanos;
     }
 
     static DatosLaberinto datosDelMapa(String mapa, Grafo grafo) {
@@ -79,10 +82,12 @@ public final class Despliegue {
         } else {
             System.out.println("No existe camino entre la entrada y la salida");
         }
+        System.out.printf(Locale.ROOT, "Tiempo: %d ns (%.6f ms)%n",
+                resultado.tiempoNanos(), resultado.tiempoNanos() / 1_000_000.0);
     }
 
     private ResultadoVista convertirResultado(List<Vertice> visitados) {
-        return new ResultadoVista(algoritmo, aCeldas(visitados), aCeldas(camino), !camino.isEmpty(), 0);
+        return new ResultadoVista(algoritmo, aCeldas(visitados), aCeldas(camino), !camino.isEmpty(), tiempoNanos);
     }
 
     private static List<Celda> aCeldas(List<Vertice> vertices) {
