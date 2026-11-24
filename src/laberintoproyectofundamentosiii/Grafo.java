@@ -1,11 +1,26 @@
 package laberintoproyectofundamentosiii;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 
+/**
+ * Grafo dirigido de un laberinto.
+ * <ul>
+ *   <li>Adyacencia: {@code Hashtable<Integer, List<Arcos>>} cuyas listas son ligadas
+ *       ({@link LinkedList}); la clave es el id del vertice (fila * columnas + columna).</li>
+ *   <li>Orden de exploracion: los arcos se crean en el orden arriba, derecha, abajo,
+ *       izquierda. BFS los recorre en ese orden; DFS los apila en orden inverso para
+ *       explorar primero el primero de la lista.</li>
+ *   <li>Desempate de Dijkstra: la cola de prioridad ordena por (distancia, id menor) y se
+ *       descartan las entradas obsoletas.</li>
+ * </ul>
+ */
 public class Grafo {
 
     private int columnas;
@@ -49,7 +64,7 @@ public class Grafo {
         int id = asignarId(vertice);
         vertices.agregar(vertice);
         if (!adyacencia.containsKey(id)) {
-            adyacencia.put(id, new ArrayList<Arcos>());
+            adyacencia.put(id, new LinkedList<Arcos>());
         }
         if (vertice.esEntrada() && this.inicio == null) {
             this.inicio = vertice;
@@ -74,10 +89,10 @@ public class Grafo {
 
     public List<Arcos> obtenerArcosDe(Vertice vertice) {
         if (vertice == null) {
-            return new ArrayList<Arcos>();
+            return Collections.emptyList();
         }
         List<Arcos> lista = adyacencia.get(vertice.getId());
-        return (lista != null) ? lista : new ArrayList<Arcos>();
+        return (lista != null) ? lista : Collections.<Arcos>emptyList();
     }
 
     public Vertices getVertices() {
@@ -139,11 +154,11 @@ public class Grafo {
 
 
         // Pila (LIFO) de pares {vertice, padre que lo apilo}
-        List<Vertice[]> pilaDFS = new ArrayList<Vertice[]>();
-        pilaDFS.add(new Vertice[] {origen, null});
+        Deque<Vertice[]> pilaDFS = new ArrayDeque<Vertice[]>();
+        pilaDFS.push(new Vertice[] {origen, null});
 
         while (!pilaDFS.isEmpty()) {
-            Vertice[] entrada = pilaDFS.remove(pilaDFS.size() - 1);
+            Vertice[] entrada = pilaDFS.pop();
             Vertice verticeActual = entrada[0];
             if (verticeActual == null) {
                 continue;
@@ -190,7 +205,7 @@ public class Grafo {
 
                 Boolean vecinoVisitado = visitadoMapa.get(idVecino);
                 if (vecinoVisitado == null || !vecinoVisitado) {
-                    pilaDFS.add(new Vertice[] {vecino, verticeActual});
+                    pilaDFS.push(new Vertice[] {vecino, verticeActual});
                 }
             }
         }
@@ -245,13 +260,13 @@ public class Grafo {
         }
 
 
-        // Lista usada como cola (FIFO): se agrega al final y se saca del índice 0
-        List<Vertice> colaBFS = new ArrayList<Vertice>();
+        // Cola (FIFO)
+        Deque<Vertice> colaBFS = new ArrayDeque<Vertice>();
         visitadoMapa.put(idOrigen, true);
         colaBFS.add(origen);
 
         while (!colaBFS.isEmpty()) {
-            Vertice verticeActual = colaBFS.remove(0);
+            Vertice verticeActual = colaBFS.poll();
             if (verticeActual == null) {
                 continue;
             }
