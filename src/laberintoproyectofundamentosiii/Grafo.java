@@ -133,12 +133,13 @@ public class Grafo {
         }
 
 
-        // Lista usada como pila (LIFO) exclusiva de DFS
-        List<Vertice> pilaDFS = new ArrayList<Vertice>();
-        pilaDFS.add(origen);
+        // Pila (LIFO) de pares {vertice, padre que lo apilo}
+        List<Vertice[]> pilaDFS = new ArrayList<Vertice[]>();
+        pilaDFS.add(new Vertice[] {origen, null});
 
         while (!pilaDFS.isEmpty()) {
-            Vertice verticeActual = pilaDFS.remove(pilaDFS.size() - 1);
+            Vertice[] entrada = pilaDFS.remove(pilaDFS.size() - 1);
+            Vertice verticeActual = entrada[0];
             if (verticeActual == null) {
                 continue;
             }
@@ -151,6 +152,9 @@ public class Grafo {
 
             visitadoMapa.put(idActual, true);
             visitados.add(verticeActual);
+            if (entrada[1] != null) {
+                predecesores.put(idActual, entrada[1]);
+            }
 
             if (idActual == idDestino) {
                 this.ultimaSolucionDFS = true;
@@ -181,10 +185,7 @@ public class Grafo {
 
                 Boolean vecinoVisitado = visitadoMapa.get(idVecino);
                 if (vecinoVisitado == null || !vecinoVisitado) {
-                    if (!predecesores.containsKey(idVecino)) {
-                        predecesores.put(idVecino, verticeActual);
-                    }
-                    pilaDFS.add(vecino);
+                    pilaDFS.add(new Vertice[] {vecino, verticeActual});
                 }
             }
         }
