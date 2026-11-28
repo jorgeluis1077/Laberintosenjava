@@ -1,0 +1,82 @@
+Estilo de símbolos: 1) ASCII  2) Unicode (ENTER = ASCII)
+
+1. Cargar laberinto
+2. Resolver con DFS
+3. Resolver con BFS
+4. Resolver con Dijkstra(caminoMasCorto)
+5. Mostrar las tres soluciones
+6. Salir
+Opcion: Ruta del archivo (ENTER para listar los mapas): 
+Archivos .txt disponibles:
+1. ciclo_dfs_mas_largo.txt
+2. con_marcas.txt
+3. con_numerales.txt
+4. espacios_finales.txt
+5. laberinto1.txt
+6. laberinto2.txt
+7. laberinto3.txt
+8. laberinto4.txt
+9. laberinto5.txt
+10. laberinto6.txt
+11. laberinto7.txt
+12. laberinto8.txt
+13. laberinto9.txt
+14. laberinto10.txt
+15. no_cuadrado.txt
+16. sin_solucion_exploracion.txt
+Elige el numero del archivo (0 para cancelar): Cargando: con_numerales.txt
+Entrada: (0,2) | Salida: (4,2)
+Se cargo el archivo y se construyo el grafo.
+++E++
++###+
++ # +
++###+
+++S++
+
+
+1. Cargar laberinto
+2. Resolver con DFS
+3. Resolver con BFS
+4. Resolver con Dijkstra(caminoMasCorto)
+5. Mostrar las tres soluciones
+6. Salir
+Opcion: 
+=== RESUMEN DE LAS 3 SOLUCIONES ===
+
+--- DFS ---
+┌─●─┐
+│·●●│
+│··●│
+│·●●│
+└─●─┘
+Visitados: 11
+Longitud: 6 movimientos
+Tiempo: 211200 ns (0.211200 ms)
+
+--- BFS ---
+┌─●─┐
+│·●·│
+│·●·│
+│ ●·│
+└─●─┘
+Visitados: 10
+Longitud: 4 movimientos
+Tiempo: 64900 ns (0.064900 ms)
+
+--- Dijkstra ---
+┌─●─┐
+│·●·│
+│·●·│
+│·●·│
+└─●─┘
+Visitados: 11
+Longitud: 4 movimientos
+Tiempo: 613300 ns (0.613300 ms)
+
+1. Cargar laberinto
+2. Resolver con DFS
+3. Resolver con BFS
+4. Resolver con Dijkstra(caminoMasCorto)
+5. Mostrar las tres soluciones
+6. Salir
+Opcion: 
