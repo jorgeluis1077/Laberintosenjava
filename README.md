@@ -45,6 +45,7 @@ Resolución de laberintos de texto mediante grafos en Java. El programa carga un
 ```text
 Laberintosenjava/
 ├── MapaLaberintos/              Mapas de ejemplo (.txt); invalidos/ contiene mapas que deben rechazarse
+├── PruebasLaberintos/           Salidas de consola y soluciones (DFS, BFS, Dijkstra) de los 16 mapas
 ├── docs/
 │   └── FRONTEND.md              Detalles de la GUI Swing y de los temas de consola
 ├── src/
@@ -61,7 +62,6 @@ Laberintosenjava/
 │       ├── consola/             Temas y dibujo en consola
 │       └── gui/                 Interfaz gráfica Swing
 └── README.md
-```
 
 ### Base (`laberintoproyectofundamentosiii`)
 
